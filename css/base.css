@@ -122,6 +122,10 @@ input:focus {
   box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
+.field-error {
+  border-color: var(--danger);
+}
+
 /* لیبل‌ها */
 label {
   display: block;

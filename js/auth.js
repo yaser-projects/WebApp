@@ -2,35 +2,7 @@
 //  Metal Brain - AUTH CONTROLLER
 // ===============================
 
-// WebSocket auto-connect (بدون نیاز به تغییر IP)
-function createWS(onMessage) {
-    const proto = location.protocol === "https:" ? "wss://" : "ws://";
-    const ws = new WebSocket(proto + location.host + "/ws");
-
-    ws.onopen = () => {
-        console.log("WS Connected.");
-
-        // مرحله ۱: گرفتن username/password از دستگاه
-        ws.send(JSON.stringify({
-            setting: "device",
-            action: "read",
-            fields: ["username", "password"]
-        }));
-    };
-
-    ws.onmessage = (e) => {
-        let data;
-        try { data = JSON.parse(e.data); }
-        catch { return; }
-
-        onMessage(data);
-    };
-
-    ws.onerror = () => console.log("WS Error");
-    ws.onclose = () => console.log("WS Closed");
-
-    return ws;
-}
+import { connectWebSocket } from "./ws.js";
 
 // عناصر صفحه
 const loginForm = document.getElementById("loginForm");
@@ -44,28 +16,44 @@ const errorBox = document.getElementById("loginError");
 let deviceUsername = null;
 let devicePassword = null;
 
-// اتصال وب‌سوکت
-const ws = createWS((data) => {
-
-    // دریافت username/password
-    if (data.username && data.password) {
-        deviceUsername = data.username;
-        devicePassword = data.password;
-        console.log("Credentials loaded:", data);
-    }
-
-    // دریافت AP SSID برای انتخاب مسیر
-    if (data["AP SSID"]) {
-        const ssid = data["AP SSID"];
-
-        // ذخیره علامت لاگین
-        sessionStorage.setItem("metalbrain-auth", "ok");
-
-        if (ssid === "Metal Brain") {
-            window.location.href = "quickstart.html";
-        } else {
-            window.location.href = "dashboard.html";
+// اتصال وب‌سوکت مشترک
+const wsClient = connectWebSocket({
+    onOpen(api) {
+        console.log("WS Connected.");
+        // مرحله ۱: گرفتن username/password از دستگاه
+        api.sendJSON({
+            setting: "device",
+            action: "read",
+            fields: ["username", "password"]
+        });
+    },
+    onJSON(data, api) {
+        // دریافت username/password
+        if (data.username && data.password) {
+            deviceUsername = data.username;
+            devicePassword = data.password;
+            console.log("Credentials loaded:", data);
         }
+
+        // دریافت AP SSID برای انتخاب مسیر
+        if (data["AP SSID"]) {
+            const ssid = data["AP SSID"];
+
+            // ذخیره علامت لاگین
+            sessionStorage.setItem("metalbrain-auth", "ok");
+
+            if (ssid === "Metal Brain") {
+                window.location.href = "quickstart.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
+        }
+    },
+    onError() {
+        console.warn("WS Error");
+    },
+    onClose() {
+        console.warn("WS Closed");
     }
 });
 
@@ -108,11 +96,11 @@ loginForm.addEventListener("submit", (e) => {
     passwordInp.classList.remove("field-error");
 
     // مرحله بعد → گرفتن AP SSID
-    ws.send(JSON.stringify({
+    wsClient.sendJSON({
         setting: "device",
         action: "read",
         fields: ["AP SSID"]
-    }));
+    });
 });
 
 // جلوگیری از دسترسی مستقیم به صفحات
