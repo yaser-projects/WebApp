@@ -1,111 +1,201 @@
-// ===============================
-//  Metal Brain - AUTH CONTROLLER
-// ===============================
+// ============================================
+// Metal Brain - Authentication Module
+// ============================================
 
-import { connectWebSocket } from "./ws.js";
+import { connectWebSocket } from './ws.js';
 
-// عناصر صفحه
-const loginForm = document.getElementById("loginForm");
-const usernameInp = document.getElementById("username");
-const passwordInp = document.getElementById("password");
-const loginBtn = document.getElementById("loginBtn");
-const togglePwd = document.getElementById("togglePwd");
-const errorBox = document.getElementById("loginError");
+// DOM Elements
+const loginForm = document.getElementById('loginForm');
+const usernameInp = document.getElementById('username');
+const passwordInp = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const togglePwd = document.getElementById('togglePwd');
+const errorBox = document.getElementById('loginError');
+const usernameError = document.getElementById('usernameError');
+const passwordError = document.getElementById('passwordError');
+const centerSpinner = document.getElementById('centerSpinner');
 
-// داده‌های واقعی دستگاه
+// Device credentials (loaded from device)
 let deviceUsername = null;
 let devicePassword = null;
 
-// اتصال وب‌سوکت مشترک
-const wsClient = connectWebSocket({
-    onOpen(api) {
-        console.log("WS Connected.");
-        // مرحله ۱: گرفتن username/password از دستگاه
-        api.sendJSON({
-            setting: "device",
-            action: "read",
-            fields: ["username", "password"]
-        });
-    },
-    onJSON(data, api) {
-        // دریافت username/password
-        if (data.username && data.password) {
-            deviceUsername = data.username;
-            devicePassword = data.password;
-            console.log("Credentials loaded:", data);
-        }
+// WebSocket connection
+let ws = null;
 
-        // دریافت AP SSID برای انتخاب مسیر
-        if (data["AP SSID"]) {
-            const ssid = data["AP SSID"];
-
-            // ذخیره علامت لاگین
-            sessionStorage.setItem("metalbrain-auth", "ok");
-
-            if (ssid === "Metal Brain") {
-                window.location.href = "quickstart.html";
-            } else {
-                window.location.href = "dashboard.html";
-            }
-        }
-    },
-    onError() {
-        console.warn("WS Error");
-    },
-    onClose() {
-        console.warn("WS Closed");
-    }
-});
-
-// فعال/غیرفعال کردن دکمه لاگین
-function validateForm() {
-    const u = usernameInp.value.trim();
-    const p = passwordInp.value.trim();
-
-    const ok =
-        u.length >= 1 && u.length <= 16 &&
-        p.length >= 1 && p.length <= 16;
-
-    loginBtn.disabled = !ok;
+/**
+ * Show/hide spinner
+ */
+function showSpinner() {
+  centerSpinner.classList.remove('hidden');
 }
-usernameInp.addEventListener("input", validateForm);
-passwordInp.addEventListener("input", validateForm);
 
-// نمایش/مخفی‌کردن پسورد
-togglePwd.addEventListener("click", () => {
-    passwordInp.type = passwordInp.type === "password" ? "text" : "password";
+function hideSpinner() {
+  centerSpinner.classList.add('hidden');
+}
+
+/**
+ * Validate form fields
+ */
+function validateForm() {
+  const u = usernameInp.value.trim();
+  const p = passwordInp.value.trim();
+
+  let isValid = true;
+
+  // Clear previous errors
+  usernameError.textContent = '';
+  passwordError.textContent = '';
+  errorBox.textContent = '';
+  usernameInp.classList.remove('error');
+  passwordInp.classList.remove('error');
+
+  // Validate username
+  if (u.length === 0) {
+    usernameError.textContent = 'Username is required';
+    usernameInp.classList.add('error');
+    isValid = false;
+  } else if (u.length > 16) {
+    usernameError.textContent = 'Username must be 1-16 characters';
+    usernameInp.classList.add('error');
+    isValid = false;
+  }
+
+  // Validate password
+  if (p.length === 0) {
+    passwordError.textContent = 'Password is required';
+    passwordInp.classList.add('error');
+    isValid = false;
+  } else if (p.length > 16) {
+    passwordError.textContent = 'Password must be 1-16 characters';
+    passwordInp.classList.add('error');
+    isValid = false;
+  }
+
+  // Enable/disable login button
+  loginBtn.disabled = !isValid;
+
+  return isValid;
+}
+
+/**
+ * Toggle password visibility
+ */
+togglePwd.addEventListener('click', () => {
+  const isPassword = passwordInp.type === 'password';
+  passwordInp.type = isPassword ? 'text' : 'password';
+  togglePwd.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+  togglePwd.textContent = isPassword ? '🙈' : '👁';
 });
 
-// ارسال روی LOGIN
-loginForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+// Real-time validation
+usernameInp.addEventListener('input', validateForm);
+passwordInp.addEventListener('blur', validateForm);
+passwordInp.addEventListener('input', validateForm);
 
-    const u = usernameInp.value.trim();
-    const p = passwordInp.value.trim();
+/**
+ * Connect WebSocket and load device credentials
+ */
+function initConnection() {
+  showSpinner();
 
-    if (u !== deviceUsername || p !== devicePassword) {
-        errorBox.textContent = "Username or password is incorrect.";
-        usernameInp.classList.add("field-error");
-        passwordInp.classList.add("field-error");
-        return;
-    }
-
-    // پاک‌کردن خطا
-    errorBox.textContent = "";
-    usernameInp.classList.remove("field-error");
-    passwordInp.classList.remove("field-error");
-
-    // مرحله بعد → گرفتن AP SSID
-    wsClient.sendJSON({
+  ws = connectWebSocket({
+    onOpen: () => {
+      console.log('[Auth] WebSocket connected');
+      // Request device credentials
+      ws.sendJSON({
         setting: "device",
         action: "read",
-        fields: ["AP SSID"]
-    });
+        fields: ["username", "password"]
+      });
+    },
+
+    onJSON: (data) => {
+      // Receive device credentials
+      if (data.username !== undefined && data.password !== undefined) {
+        deviceUsername = data.username;
+        devicePassword = data.password;
+        console.log('[Auth] Credentials loaded from device');
+        hideSpinner();
+      }
+
+      // Receive AP SSID for redirect decision
+      if (data['AP SSID'] !== undefined) {
+        const apSsid = data['AP SSID'];
+        hideSpinner();
+        
+        if (apSsid === 'Metal Brain') {
+          window.location.href = 'quickstart.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }
+    },
+
+    onError: () => {
+      console.error('[Auth] WebSocket error');
+      hideSpinner();
+      errorBox.textContent = 'Connection error. Please check your device connection.';
+    },
+
+    onClose: () => {
+      console.log('[Auth] WebSocket closed');
+    }
+  });
+}
+
+/**
+ * Handle form submission
+ */
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    return;
+  }
+
+  const u = usernameInp.value.trim();
+  const p = passwordInp.value.trim();
+
+  // Check if credentials match device
+  if (deviceUsername === null || devicePassword === null) {
+    errorBox.textContent = 'Device credentials not loaded. Please wait...';
+    return;
+  }
+
+  if (u !== deviceUsername || p !== devicePassword) {
+    errorBox.textContent = 'Username or password is incorrect.';
+    usernameInp.classList.add('error');
+    passwordInp.classList.add('error');
+    return;
+  }
+
+  // Clear errors
+  errorBox.textContent = '';
+  usernameInp.classList.remove('error');
+  passwordInp.classList.remove('error');
+
+  // Show spinner
+  showSpinner();
+
+  // Request AP SSID to determine redirect
+  ws.sendJSON({
+    setting: "device",
+    action: "read",
+    fields: ["AP SSID"]
+  });
 });
 
-// جلوگیری از دسترسی مستقیم به صفحات
+/**
+ * Check authentication status
+ */
 export function requireAuth() {
-    if (sessionStorage.getItem("metalbrain-auth") !== "ok") {
-        window.location.href = "index.html";
-    }
+  if (sessionStorage.getItem('metalbrain-auth') !== 'ok') {
+    window.location.href = 'index.html';
+  }
 }
+
+/**
+ * Initialize on page load
+ */
+initConnection();
+

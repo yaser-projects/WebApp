@@ -1,8 +1,11 @@
-/* css/login.css */
+/* ============================================
+   Metal Brain - Login Page Styles
+   ============================================ */
 
 .login-wrapper {
   max-width: 420px;
   width: 100%;
+  margin: 0 auto;
 }
 
 .login-card {
@@ -10,31 +13,17 @@
   overflow: hidden;
 }
 
-.login-card::before {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  background: radial-gradient(circle at 10% 0, rgba(5, 208, 197, 0.08), transparent 55%);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
 .login-card-inner {
   position: relative;
+  z-index: 1;
 }
 
-/* هدر لاگین */
+/* Header */
 .login-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-.login-header-title {
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
-  color: var(--muted);
+  align-items: flex-start;
+  margin-bottom: 24px;
 }
 
 .login-header-main {
@@ -43,66 +32,104 @@
   gap: 4px;
 }
 
+.login-header-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
 .login-header-main h1 {
   font-size: 1.5rem;
+  margin: 0;
 }
 
 .login-header-main small {
   font-size: 0.8rem;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 
-/* آیکون‌های داخل فیلدها */
+/* Form Fields */
+.field {
+  margin-bottom: 18px;
+}
+
+.field label {
+  margin-bottom: 8px;
+}
+
 .field-icon-wrapper {
   position: relative;
 }
 
 .field-icon-wrapper input {
-  padding-left: 34px;
-  padding-right: 34px;
+  padding-left: 38px;
+  padding-right: 38px;
 }
 
 .field-icon-wrapper .left-icon {
   position: absolute;
+  left: 12px;
   top: 50%;
-  left: 11px;
   transform: translateY(-50%);
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 1rem;
+  pointer-events: none;
 }
 
 .field-icon-wrapper .right-btn {
   position: absolute;
+  right: 8px;
   top: 50%;
-  right: 4px;
   transform: translateY(-50%);
-  border-radius: 999px;
-  border: none;
-  width: 30px;
-  height: 30px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 0.85rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
 }
 
-/* فوتر فرم لاگین */
+.field-icon-wrapper .right-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Error States */
+input.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, 0.2);
+}
+
+.error-msg {
+  min-height: 20px;
+  margin-top: 4px;
+}
+
+/* Footer */
 .login-footer {
-  margin-top: 16px;
+  margin-top: 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .login-footer small {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 0.72rem;
 }
 
+/* Responsive */
 @media (max-width: 480px) {
   .login-footer {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .login-header {
+    flex-direction: column;
+    gap: 12px;
   }
 }
+

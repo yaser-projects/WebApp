@@ -2,20 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Metal Brain Login</title>
-
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- استایل‌ها -->
-  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/common-style.css">
   <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
   <div class="main-container login-wrapper">
     <div class="card login-card">
       <div class="login-card-inner">
-
-        <!-- هدر بالا -->
+        <!-- Header -->
         <div class="login-header">
           <div class="login-header-main">
             <div class="login-header-title">METAL BRAIN</div>
@@ -28,9 +24,9 @@
           </span>
         </div>
 
-        <!-- فرم لاگین -->
+        <!-- Login Form -->
         <form id="loginForm" novalidate>
-          <!-- یوزرنیم -->
+          <!-- Username Field -->
           <div class="field">
             <label for="username">Username (1–16 characters)</label>
             <div class="field-icon-wrapper">
@@ -46,9 +42,10 @@
                 aria-describedby="loginError"
                 placeholder="Device user">
             </div>
+            <small class="error-msg" id="usernameError"></small>
           </div>
 
-          <!-- پسورد -->
+          <!-- Password Field -->
           <div class="field">
             <label for="password">Password (1–16 characters)</label>
             <div class="field-icon-wrapper">
@@ -71,27 +68,32 @@
                 aria-pressed="false"
                 title="Show password">👁</button>
             </div>
+            <small class="error-msg" id="passwordError"></small>
           </div>
 
-          <!-- خطاها -->
+          <!-- Error Message -->
           <p id="loginError" class="error-msg" aria-live="polite"></p>
 
           <noscript>
             <p class="error-msg">JavaScript is required to use this login form.</p>
           </noscript>
 
-          <!-- دکمه لاگین -->
+          <!-- Footer -->
           <div class="login-footer">
             <small>Credentials are stored on your Metal Brain device.</small>
             <button id="loginBtn" type="submit" class="btn primary" disabled>LOGIN</button>
           </div>
         </form>
-
       </div>
     </div>
   </div>
 
-  <!-- لاجیک لاگین (وب‌سوکت و ...) -->
+  <!-- Progress Spinner -->
+  <div id="centerSpinner" class="center-spinner hidden">
+    <div class="spinner"></div>
+  </div>
+
   <script type="module" src="js/auth.js"></script>
 </body>
 </html>
+

@@ -1,355 +1,706 @@
-// =========================
-// METAL BRAIN QUICK-START
-// Implements the 5-step QuickStart wizard and WebSocket message handling
-// =========================
+// ============================================
+// Metal Brain - QuickStart Wizard
+// ============================================
 
+import { connectWebSocket } from './ws.js';
+
+// State
 let currentStep = 1;
 const totalSteps = 5;
-
-const qsSteps = document.querySelectorAll('.qs-step');
-const dots = document.querySelectorAll('.dot');
-const centerSpinner = createOrGetSpinner();
-
-function showStep(n) {
-    currentStep = n;
-    qsSteps.forEach((s, i) => s.classList.toggle('active', i === (n - 1)));
-    dots.forEach((d, i) => d.classList.toggle('active', i === (n - 1)));
-}
-
-function createOrGetSpinner() {
-    let el = document.getElementById('centerSpinner');
-    if (!el) {
-        el = document.createElement('div');
-        el.id = 'centerSpinner';
-        el.className = 'center-spinner hidden';
-        el.innerHTML = '<div class="spinner"></div>';
-        document.body.appendChild(el);
-    }
-    return el;
-}
-
-function showCenterSpinner() { centerSpinner.classList.remove('hidden'); }
-function hideCenterSpinner() { centerSpinner.classList.add('hidden'); }
-
-// WebSocket helper with basic request/response matching
-const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
 let ws = null;
-let pendingResolvers = [];
-
-function ensureWS() {
-    if (ws && ws.readyState === WebSocket.OPEN) return ws;
-    ws = new WebSocket(proto + location.host + '/ws');
-
-    ws.onopen = () => console.log('WS Connected');
-    ws.onclose = () => console.log('WS Closed');
-    ws.onerror = (e) => console.log('WS Error', e);
-
-    ws.onmessage = (ev) => {
-        let data;
-        try { data = JSON.parse(ev.data); } catch { return; }
-        // resolve any pending promises that match expected shape
-        pendingResolvers.forEach(pr => {
-            try { pr.check(data); } catch (err) { /* ignore */ }
-        });
-    };
-
-    return ws;
-}
-
-function sendAndWait(request, matcher, timeout = 10000) {
-    return new Promise((resolve, reject) => {
-        const sock = ensureWS();
-        const timeoutId = setTimeout(() => {
-            // remove resolver
-            pendingResolvers = pendingResolvers.filter(r => r !== resolver);
-            reject(new Error('Timeout waiting response'));
-        }, timeout);
-
-        const resolver = {
-            check: (data) => {
-                if (matcher(data)) {
-                    clearTimeout(timeoutId);
-                    pendingResolvers = pendingResolvers.filter(r => r !== resolver);
-                    resolve(data);
-                }
-            }
-        };
-        pendingResolvers.push(resolver);
-
-        // send when socket open; if not open, wait for open
-        if (sock.readyState === WebSocket.OPEN) {
-            sock.send(JSON.stringify(request));
-        } else {
-            sock.addEventListener('open', function onopen() {
-                sock.removeEventListener('open', onopen);
-                sock.send(JSON.stringify(request));
-            });
-        }
-    });
-}
-
-// DOM elements
-const startBtn = document.getElementById('startBtn');
-const apSsid = document.getElementById('apSsid');
-const apPass = document.getElementById('apPass');
-const saveAp = document.getElementById('saveAp');
-
-const staHasInternet = document.getElementById('staHasInternet');
-const staNetworks = document.getElementById('staNetworks');
-const staPass = document.getElementById('staPass');
-const saveSta = document.getElementById('saveSta');
-
-const modeAp = document.getElementById('modeAp');
-const modeSta = document.getElementById('modeSta');
-const nextToStep5 = document.getElementById('nextToStep5');
-
-const finishBtn = document.getElementById('finishBtn');
-
-const summaryAPSSID = document.getElementById('summaryAPSSID') || document.getElementById('summaryBox');
-// local storage of values
 let deviceState = {
-    'AP SSID': '',
-    'AP Pre-Shared Key': '',
-    'Modem SSID': '',
-    'Modem Pre-Shared Key': '',
-    modeAP: false,
-    modeSTA: false
+  'AP SSID': '',
+  'AP Pre-Shared Key': '',
+  'Modem SSID': '',
+  'Modem Pre-Shared Key': '',
+  modeAP: false,
+  modeSTA: false
 };
 
-// Utilities: validation
+// DOM Elements
+const steps = document.querySelectorAll('.qs-step');
+const dots = document.querySelectorAll('.dot');
+const spinner = document.getElementById('qsSpinner');
+
+// Step 1
+const btnStart = document.getElementById('btnStart');
+
+// Step 2
+const apHidden = document.getElementById('apHidden');
+const apSsid = document.getElementById('apSsid');
+const apPass = document.getElementById('apPass');
+const apSsidError = document.getElementById('apSsidError');
+const apPassError = document.getElementById('apPassError');
+const btnApNext = document.getElementById('btnApNext');
+
+// Step 3
+const staHasInternet = document.getElementById('staHasInternet');
+const staSsid = document.getElementById('staSsid');
+const staPass = document.getElementById('staPass');
+const staSsidError = document.getElementById('staSsidError');
+const staPassError = document.getElementById('staPassError');
+const btnStaPrev = document.getElementById('btnStaPrev');
+const btnStaNext = document.getElementById('btnStaNext');
+
+// Step 4
+const modeAp = document.getElementById('modeAp');
+const modeSta = document.getElementById('modeSta');
+const selectModeError = document.getElementById('selectModeError');
+const btnModePrev = document.getElementById('btnModePrev');
+const btnModeNext = document.getElementById('btnModeNext');
+
+// Step 5
+const summaryAPSSID = document.getElementById('summaryAPSSID');
+const summaryAPPsk = document.getElementById('summaryAPPsk');
+const summaryModemSSID = document.getElementById('summaryModemSSID');
+const summaryModemPsk = document.getElementById('summaryModemPsk');
+const summaryMode = document.getElementById('summaryMode');
+const btnFinishPrev = document.getElementById('btnFinishPrev');
+const btnFinish = document.getElementById('btnFinish');
+
+/**
+ * Show/hide spinner
+ */
+function showSpinner() {
+  spinner.classList.remove('hidden');
+}
+
+function hideSpinner() {
+  spinner.classList.add('hidden');
+}
+
+/**
+ * Show step
+ */
+function showStep(stepNum) {
+  currentStep = stepNum;
+  steps.forEach((step, idx) => {
+    step.classList.toggle('active', idx + 1 === stepNum);
+  });
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle('active', idx + 1 === stepNum);
+  });
+}
+
+/**
+ * Send WebSocket message and wait for response
+ */
+function sendWSMessage(message, timeout = 5000, matcher = null) {
+  return new Promise((resolve, reject) => {
+    if (!ws || !ws.isConnected) {
+      reject(new Error('WebSocket not connected'));
+      return;
+    }
+
+    const originalOnJSON = ws.handlers.onJSON;
+    let handlerRestored = false;
+
+    const restoreHandler = () => {
+      if (!handlerRestored) {
+        handlerRestored = true;
+        ws.handlers.onJSON = originalOnJSON;
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      restoreHandler();
+      reject(new Error('Timeout waiting for response'));
+    }, timeout);
+
+    ws.handlers.onJSON = (data) => {
+      // If matcher provided, check if this is the expected response
+      if (matcher && !matcher(data)) {
+        // Not the expected response, keep waiting
+        // But still call original handler for other processing
+        if (originalOnJSON) {
+          originalOnJSON(data, ws);
+        }
+        return;
+      }
+      
+      clearTimeout(timeoutId);
+      restoreHandler();
+      resolve(data);
+    };
+
+    ws.sendJSON(message);
+  });
+}
+
+/**
+ * Validate Step 2: Access Point
+ */
 function validateAP() {
-    const s = apSsid.value.trim();
-    const p = apPass.value.trim();
-    const ok = s.length >= 1 && s.length <= 32 && s.toLowerCase() !== 'metal brain' && p.length >= 8 && p.length <= 64;
-    return ok;
+  let isValid = true;
+  apSsidError.textContent = '';
+  apPassError.textContent = '';
+  apSsid.classList.remove('error');
+  apPass.classList.remove('error');
+
+  const ssid = apSsid.value.trim();
+  const pass = apPass.value.trim();
+
+  if (ssid.length === 0 || ssid.length > 32) {
+    apSsidError.textContent = 'SSID must be 1-32 characters';
+    apSsid.classList.add('error');
+    isValid = false;
+  } else if (ssid.toLowerCase() === 'metal brain') {
+    apSsidError.textContent = 'SSID cannot be "Metal Brain"';
+    apSsid.classList.add('error');
+    isValid = false;
+  }
+
+  if (pass.length < 8 || pass.length > 64) {
+    apPassError.textContent = 'Pre-Shared Key must be 8-64 characters';
+    apPass.classList.add('error');
+    isValid = false;
+  }
+
+  return isValid;
 }
 
+/**
+ * Validate Step 3: Station Mode
+ */
 function validateStation() {
-    if (!staHasInternet.checked) return true;
-    const s = (staNetworks.value || '').trim();
-    const p = staPass.value.trim();
-    return s.length >= 1 && s.length <= 32 && p.length <= 64;
+  if (!staHasInternet.checked) {
+    return true; // No validation needed if internet checkbox is off
+  }
+
+  let isValid = true;
+  staSsidError.textContent = '';
+  staPassError.textContent = '';
+  staSsid.classList.remove('error');
+  staPass.classList.remove('error');
+
+  const ssid = staSsid.value.trim();
+  const pass = staPass.value.trim();
+
+  if (ssid.length === 0 || ssid.length > 32) {
+    staSsidError.textContent = 'SSID must be 1-32 characters';
+    staSsid.classList.add('error');
+    isValid = false;
+  }
+
+  if (pass.length > 64) {
+    staPassError.textContent = 'Pre-Shared Key must be 0-64 characters';
+    staPass.classList.add('error');
+    isValid = false;
+  }
+
+  return isValid;
 }
 
-// Step behaviors
-startBtn.addEventListener('click', async () => {
-    showCenterSpinner();
-    // show for 1 second then load next
-    await new Promise(r => setTimeout(r, 1000));
-    hideCenterSpinner();
-    showStep(2);
+// Global scan result handler
+let scanResultHandler = null;
 
-    // request current AP settings
-    try {
-        const res = await sendAndWait({ setting: 'device', action: 'read', fields: ['AP SSID','AP Pre-Shared Key'] }, d => d['AP SSID'] !== undefined || d['AP Pre-Shared Key'] !== undefined, 5000);
-        if (res['AP SSID'] !== undefined) {
-            apSsid.value = res['AP SSID'];
-            deviceState['AP SSID'] = res['AP SSID'];
-        }
-        if (res['AP Pre-Shared Key'] !== undefined) {
-            apPass.value = res['AP Pre-Shared Key'];
-            deviceState['AP Pre-Shared Key'] = res['AP Pre-Shared Key'];
-        }
-    } catch (err) {
-        console.log('No AP settings received', err);
+/**
+ * Initialize WebSocket connection
+ */
+function initWebSocket() {
+  ws = connectWebSocket({
+    onOpen: () => {
+      console.log('[QuickStart] WebSocket connected');
+      // Load AP settings when entering step 2
+      if (currentStep === 2) {
+        loadAPSettings();
+      }
+    },
+    onJSON: (data) => {
+      console.log('[QuickStart] Received:', data);
+      
+      // Check if this is a scan result
+      if (data['Scan Networks'] !== undefined && scanResultHandler) {
+        scanResultHandler(data);
+        scanResultHandler = null;
+      }
+    },
+    onError: () => {
+      console.error('[QuickStart] WebSocket error');
+      if (scanResultHandler) {
+        scanResultHandler(null);
+        scanResultHandler = null;
+      }
+    },
+    onClose: () => {
+      console.log('[QuickStart] WebSocket closed');
     }
+  });
+}
+
+/**
+ * Load Access Point settings (Step 2)
+ */
+async function loadAPSettings() {
+  try {
+    showSpinner();
+    const response = await sendWSMessage({
+      setting: "device",
+      action: "read",
+      fields: ["AP SSID", "AP Pre-Shared Key"]
+    }, 5000);
+
+    if (response['AP SSID'] !== undefined) {
+      apSsid.value = response['AP SSID'] || '';
+      deviceState['AP SSID'] = response['AP SSID'] || '';
+    }
+    if (response['AP Pre-Shared Key'] !== undefined) {
+      apPass.value = response['AP Pre-Shared Key'] || '';
+      deviceState['AP Pre-Shared Key'] = response['AP Pre-Shared Key'] || '';
+    }
+    hideSpinner();
+  } catch (error) {
+    console.error('[QuickStart] Failed to load AP settings:', error);
+    hideSpinner();
+  }
+}
+
+/**
+ * Load Station settings (Step 3)
+ */
+async function loadStationSettings() {
+  try {
+    showSpinner();
+    const response = await sendWSMessage({
+      setting: "device",
+      action: "read",
+      fields: ["Modem SSID", "Modem Pre-Shared Key"]
+    }, 5000);
+
+    if (response['Modem SSID'] !== undefined) {
+      deviceState['Modem SSID'] = response['Modem SSID'] || '';
+      // Add to select if exists
+      if (deviceState['Modem SSID']) {
+        const option = document.createElement('option');
+        option.value = deviceState['Modem SSID'];
+        option.textContent = deviceState['Modem SSID'];
+        staSsid.appendChild(option);
+        staSsid.value = deviceState['Modem SSID'];
+      }
+    }
+    if (response['Modem Pre-Shared Key'] !== undefined) {
+      staPass.value = response['Modem Pre-Shared Key'] || '';
+      deviceState['Modem Pre-Shared Key'] = response['Modem Pre-Shared Key'] || '';
+    }
+    hideSpinner();
+  } catch (error) {
+    console.error('[QuickStart] Failed to load Station settings:', error);
+    hideSpinner();
+  }
+}
+
+/**
+ * Scan WiFi networks
+ */
+async function scanNetworks() {
+  try {
+    showSpinner();
+    
+    // First scan request - wait for "Succeed" or "busy" response
+    let response = await sendWSMessage({
+      setting: "command",
+      action: "push button",
+      fields: {"Scan Networks": true}
+    }, 3000, (data) => {
+      // Match for initial response (Succeed or busy)
+      return (data.error !== undefined || data.message !== undefined);
+    });
+
+    console.log('[QuickStart] Scan initial response:', response);
+
+    // Check if busy
+    if (response.error && response.message === "WiFi scan busy") {
+      // Wait and try again
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      response = await sendWSMessage({
+        setting: "command",
+        action: "push button",
+        fields: {"Scan Networks": true}
+      }, 3000, (data) => {
+        return (data.error !== undefined || data.message !== undefined);
+      });
+    }
+
+    // Check if scan results came in the first response
+    if (response['Scan Networks']) {
+      processScanResults(response['Scan Networks']);
+      hideSpinner();
+      return;
+    }
+
+    // Otherwise, wait for scan results in a separate message
+    // Set up handler to catch scan results
+    const scanPromise = new Promise((resolve, reject) => {
+      scanResultHandler = (data) => {
+        if (data && data['Scan Networks'] !== undefined) {
+          resolve(data['Scan Networks']);
+        } else {
+          reject(new Error('No scan results received'));
+        }
+      };
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        if (scanResultHandler) {
+          scanResultHandler = null;
+          reject(new Error('Timeout waiting for scan results'));
+        }
+      }, 10000);
+    });
+
+    try {
+      const networks = await scanPromise;
+      processScanResults(networks);
+    } catch (error) {
+      console.error('[QuickStart] Failed to get scan results:', error);
+      // Try reading directly
+      try {
+        const readResponse = await sendWSMessage({
+          setting: "device",
+          action: "read",
+          fields: ["Scan Networks"]
+        }, 5000);
+        
+        if (readResponse['Scan Networks']) {
+          processScanResults(readResponse['Scan Networks']);
+        } else {
+          throw new Error('No networks in read response');
+        }
+      } catch (readError) {
+        console.error('[QuickStart] Read scan results failed:', readError);
+        alert('Failed to get scan results. Please try again.');
+      }
+    }
+    
+    hideSpinner();
+  } catch (error) {
+    console.error('[QuickStart] Scan failed:', error);
+    hideSpinner();
+    if (scanResultHandler) {
+      scanResultHandler = null;
+    }
+    alert('Failed to scan networks. Please try again.');
+  }
+}
+
+/**
+ * Process and display scan results
+ */
+function processScanResults(networks) {
+  // Clear existing options
+  staSsid.innerHTML = '<option value="">(Select or type)</option>';
+  
+  if (!networks) {
+    console.warn('[QuickStart] No networks data');
+    return;
+  }
+
+  if (typeof networks === 'string' && networks === "No Wi-Fi networks found") {
+    // Allow manual input
+    staSsid.innerHTML = '<option value="">(Type manually)</option>';
+    console.log('[QuickStart] No networks found');
+    return;
+  }
+
+  if (Array.isArray(networks) && networks.length > 0) {
+    networks.forEach((network, index) => {
+      // Network format: ["SSID", "RSSI", "SECURITY"] or just "SSID"
+      let ssid;
+      if (Array.isArray(network)) {
+        ssid = network[0]; // First element is SSID
+      } else if (typeof network === 'string') {
+        ssid = network;
+      } else {
+        console.warn(`[QuickStart] Invalid network format at index ${index}:`, network);
+        return; // Skip invalid entries
+      }
+
+      if (ssid && ssid.trim()) {
+        const option = document.createElement('option');
+        option.value = ssid.trim();
+        option.textContent = ssid.trim();
+        staSsid.appendChild(option);
+      }
+    });
+    
+    console.log(`[QuickStart] Added ${networks.length} networks to dropdown`);
+  } else {
+    console.warn('[QuickStart] Unexpected scan result format:', networks);
+  }
+}
+
+/**
+ * Load summary data (Step 5)
+ */
+async function loadSummary() {
+  try {
+    showSpinner();
+    const response = await sendWSMessage({
+      setting: "device",
+      action: "read",
+      fields: ["AP SSID", "AP Pre-Shared Key", "Modem SSID", "Modem Pre-Shared Key"]
+    }, 5000);
+
+    summaryAPSSID.textContent = response['AP SSID'] || '-';
+    summaryAPPsk.textContent = response['AP Pre-Shared Key'] || '-';
+    summaryModemSSID.textContent = response['Modem SSID'] || '-';
+    summaryModemPsk.textContent = response['Modem Pre-Shared Key'] || '-';
+    
+    const modeParts = [];
+    if (modeAp.checked) modeParts.push('AP');
+    if (modeSta.checked) modeParts.push('STA');
+    summaryMode.textContent = modeParts.length > 0 ? modeParts.join(' + ') : '-';
+    
+    hideSpinner();
+  } catch (error) {
+    console.error('[QuickStart] Failed to load summary:', error);
+    hideSpinner();
+  }
+}
+
+// ===== Event Handlers =====
+
+// Step 1: Start
+btnStart.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  hideSpinner();
+  showStep(2);
+  if (ws && ws.isConnected) {
+    loadAPSettings();
+  }
 });
 
-// Access Point -> Next
-saveAp.addEventListener('click', async () => {
-    // inline validation
-    if (!validateAP()) {
-        alert('AP inputs invalid. SSID 1-32 chars (not "Metal Brain"), PSK 8-64 chars.');
-        return;
-    }
+// Step 2: Access Point - Next
+btnApNext.addEventListener('click', async () => {
+  if (!validateAP()) {
+    return;
+  }
 
-    showCenterSpinner();
-    // send write and wait for confirmation
-    try {
-        const req = { setting: 'device', action: 'write', fields: { 'AP SSID': apSsid.value.trim(), 'AP Pre-Shared Key': apPass.value.trim() } };
-        const resp = await sendAndWait(req, d => d.error === false || d.message !== undefined, 10000);
-        // update local state
-        deviceState['AP SSID'] = apSsid.value.trim();
-        deviceState['AP Pre-Shared Key'] = apPass.value.trim();
-        console.log('AP saved', resp);
-    } catch (err) {
-        console.error('Failed to save AP', err);
-        alert('Failed to save AP settings');
-        hideCenterSpinner();
-        return;
-    }
+  showSpinner();
+  
+  try {
+    const response = await sendWSMessage({
+      setting: "device",
+      action: "write",
+      fields: {
+        "AP SSID": apSsid.value.trim(),
+        "AP Pre-Shared Key": apPass.value.trim()
+      }
+    }, 10000);
 
-    hideCenterSpinner();
-    showStep(3);
-
-    // on entering Station step request modem settings
-    try {
-        const res = await sendAndWait({ setting: 'device', action: 'read', fields: ['Modem SSID','Modem Pre-Shared Key'] }, d => d['Modem SSID'] !== undefined || d['Modem Pre-Shared Key'] !== undefined, 5000);
-        if (res['Modem SSID'] !== undefined) deviceState['Modem SSID'] = res['Modem SSID'];
-        if (res['Modem Pre-Shared Key'] !== undefined) deviceState['Modem Pre-Shared Key'] = res['Modem Pre-Shared Key'];
-        // populate
-        if (deviceState['Modem SSID']) {
-            // add as first option
-            staNetworks.innerHTML = `<option value="${deviceState['Modem SSID']}">${deviceState['Modem SSID']}</option>` + staNetworks.innerHTML;
-        }
-    } catch (err) {
-        console.log('No modem values received', err);
+    if (response.error === false || response.message) {
+      deviceState['AP SSID'] = apSsid.value.trim();
+      deviceState['AP Pre-Shared Key'] = apPass.value.trim();
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      hideSpinner();
+      showStep(3);
+      
+      if (ws && ws.isConnected) {
+        loadStationSettings();
+      }
+    } else {
+      throw new Error('Failed to save AP settings');
     }
+  } catch (error) {
+    console.error('[QuickStart] Save AP failed:', error);
+    alert('Failed to save Access Point settings. Please try again.');
+    hideSpinner();
+  }
 });
 
-// Station: checkbox toggles fields
+// Step 3: Station Mode - Internet checkbox
 staHasInternet.addEventListener('change', () => {
-    const enabled = staHasInternet.checked;
-    staNetworks.disabled = !enabled;
-    staPass.disabled = !enabled;
-    if (!enabled) {
-        // clear inputs
-        staNetworks.value = '';
-        staPass.value = '';
+  const enabled = staHasInternet.checked;
+  staSsid.disabled = !enabled;
+  staPass.disabled = !enabled;
+
+  if (!enabled) {
+    staSsid.value = '';
+    staPass.value = '';
+  } else {
+    // Restore saved values if any
+    if (deviceState['Modem SSID']) {
+      staSsid.value = deviceState['Modem SSID'];
+    }
+    if (deviceState['Modem Pre-Shared Key']) {
+      staPass.value = deviceState['Modem Pre-Shared Key'];
+    }
+  }
+});
+
+// Step 3: Station Mode - SSID dropdown focus/click (scan)
+let scanTriggered = false;
+staSsid.addEventListener('focus', async () => {
+  if (staHasInternet.checked && ws && ws.isConnected && !scanTriggered) {
+    scanTriggered = true;
+    await scanNetworks();
+    scanTriggered = false;
+  }
+});
+
+staSsid.addEventListener('mousedown', async (e) => {
+  if (staHasInternet.checked && ws && ws.isConnected && !scanTriggered) {
+    // Only trigger if clicking on the select itself, not an option
+    if (e.target === staSsid) {
+      scanTriggered = true;
+      await scanNetworks();
+      scanTriggered = false;
+    }
+  }
+});
+
+// Step 3: Station Mode - Previous
+btnStaPrev.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  hideSpinner();
+  showStep(2);
+});
+
+// Step 3: Station Mode - Next
+btnStaNext.addEventListener('click', async () => {
+  if (!validateStation()) {
+    return;
+  }
+
+  showSpinner();
+
+  try {
+    const response = await sendWSMessage({
+      setting: "device",
+      action: "write",
+      fields: {
+        "Modem SSID": staSsid.value.trim(),
+        "Modem Pre-Shared Key": staPass.value.trim()
+      }
+    }, 10000);
+
+    if (response.error === false || response.message) {
+      deviceState['Modem SSID'] = staSsid.value.trim();
+      deviceState['Modem Pre-Shared Key'] = staPass.value.trim();
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      hideSpinner();
+      showStep(4);
+      
+      // Enforce mode rules
+      enforceModeRules();
     } else {
-        // restore previously known modem SSID if any
-        if (deviceState['Modem SSID']) {
-            const opt = document.createElement('option');
-            opt.value = deviceState['Modem SSID'];
-            opt.textContent = deviceState['Modem SSID'];
-            if (staNetworks.options.length === 1) {
-                // only default option, add modem
-                staNetworks.appendChild(opt);
-            }
-            staNetworks.value = deviceState['Modem SSID'];
-        }
+      throw new Error('Failed to save Station settings');
     }
+  } catch (error) {
+    console.error('[QuickStart] Save Station failed:', error);
+    alert('Failed to save Station settings. Please try again.');
+    hideSpinner();
+  }
 });
 
-// When clicking the SSID dropdown, trigger scan
-staNetworks.addEventListener('click', async () => {
-    if (!staHasInternet.checked) return;
-    showCenterSpinner();
-    try {
-        const res = await sendAndWait({ setting: 'device', action: 'read', fields: ['Scan Networks'] }, d => d['Scan Networks'] !== undefined, 10000);
-        const sn = res['Scan Networks'];
-        staNetworks.innerHTML = '';
-        if (Array.isArray(sn)) {
-            sn.forEach(item => {
-                // server returns array like [ [ssid, rssi, flags], ... ]
-                const ssid = Array.isArray(item) ? item[0] : String(item);
-                const op = document.createElement('option');
-                op.value = ssid;
-                op.textContent = `${ssid}`;
-                staNetworks.appendChild(op);
-            });
-        } else if (typeof sn === 'string') {
-            // No networks
-            hideCenterSpinner();
-            staNetworks.innerHTML = '';
-            // allow manual typing: replace select with an input
-            const manual = document.getElementById('modemSsidManual');
-            if (manual) {
-                manual.classList.remove('hidden');
-            }
-            return;
-        }
-    } catch (err) {
-        console.log('Scan failed', err);
-    }
-    hideCenterSpinner();
-});
-
-// Save Station settings
-saveSta.addEventListener('click', async () => {
-    if (!validateStation()) {
-        alert('Station inputs invalid.');
-        return;
-    }
-
-    showCenterSpinner();
-    try {
-        const chosen = (staNetworks.value || '').trim();
-        const req = { setting: 'device', action: 'write', fields: { 'Modem SSID': chosen, 'Modem Pre-Shared Key': staPass.value.trim() } };
-        const resp = await sendAndWait(req, d => d.error === false || d.message !== undefined, 10000);
-        deviceState['Modem SSID'] = chosen;
-        deviceState['Modem Pre-Shared Key'] = staPass.value.trim();
-        console.log('Station saved', resp);
-    } catch (err) {
-        console.error('Failed to save station', err);
-        alert('Failed to save station settings');
-        hideCenterSpinner();
-        return;
-    }
-    hideCenterSpinner();
-    showStep(4);
-});
-
-// Select Mode: enforce rules
+// Step 4: Select Mode - Enforce rules
 function enforceModeRules() {
-    if (!staHasInternet.checked) {
-        modeAp.checked = true;
-        modeAp.disabled = false;
-        modeSta.checked = false;
-        modeSta.disabled = true;
-    } else {
-        modeAp.disabled = false;
-        modeSta.disabled = false;
-    }
-    // ensure at least one
-    if (!modeAp.checked && !modeSta.checked) modeAp.checked = true;
+  if (!staHasInternet.checked) {
+    // If no internet, only AP mode available
+    modeAp.checked = true;
+    modeAp.disabled = false;
+    modeSta.checked = false;
+    modeSta.disabled = true;
+  } else {
+    // Both modes available
+    modeAp.disabled = false;
+    modeSta.disabled = false;
+  }
+  
+  // Ensure at least one is selected
+  if (!modeAp.checked && !modeSta.checked) {
+    modeAp.checked = true;
+  }
 }
 
-modeAp.addEventListener('change', enforceModeRules);
-modeSta.addEventListener('change', enforceModeRules);
-
-nextToStep5.addEventListener('click', async () => {
-    enforceModeRules();
-    showCenterSpinner();
-    // show 1s progress then send push-button commands according to selections
-    await new Promise(r => setTimeout(r, 1000));
-    const fields = {};
-    if (modeAp.checked) fields['AP Button'] = true;
-    if (modeSta.checked) fields['STA Button'] = true;
-
-    try {
-        await sendAndWait({ setting: 'command', action: 'push button', fields }, d => d.message !== undefined || d.error !== undefined, 5000);
-    } catch (err) {
-        console.log('Push button send error', err);
-    }
-    hideCenterSpinner();
-    showStep(5);
-
-    // request summary values
-    try {
-        const res = await sendAndWait({ setting: 'device', action: 'read', fields: ['AP SSID','AP Pre-Shared Key','Modem SSID','Modem Pre-Shared Key'] }, d => d['AP SSID'] !== undefined || d['Modem SSID'] !== undefined, 5000);
-        if (res['AP SSID']) document.getElementById('summaryAPSSID').textContent = res['AP SSID'];
-        if (res['AP Pre-Shared Key']) document.getElementById('summaryAPPsk').textContent = res['AP Pre-Shared Key'];
-        if (res['Modem SSID']) document.getElementById('summaryModemSSID').textContent = res['Modem SSID'];
-        if (res['Modem Pre-Shared Key']) document.getElementById('summaryModemPsk').textContent = res['Modem Pre-Shared Key'];
-        document.getElementById('summaryMode').textContent = `${modeAp.checked ? 'AP' : ''}${modeAp.checked && modeSta.checked ? ' + ' : ''}${modeSta.checked ? 'STA' : ''}`;
-    } catch (err) {
-        console.log('Could not fetch summary', err);
-    }
+modeAp.addEventListener('change', () => {
+  if (!modeAp.checked && !modeSta.checked) {
+    modeSta.checked = true; // Keep at least one selected
+  }
 });
 
-finishBtn.addEventListener('click', async () => {
-    showCenterSpinner();
-    // show 500ms
-    await new Promise(r => setTimeout(r, 500));
+modeSta.addEventListener('change', () => {
+  if (!modeAp.checked && !modeSta.checked) {
+    modeAp.checked = true; // Keep at least one selected
+  }
+});
 
-    // send selected messages (finalize)
-    const fields = {};
-    if (modeAp.checked) fields['AP Button'] = true;
-    if (modeSta.checked) fields['STA Button'] = true;
-    try {
-        await sendAndWait({ setting: 'command', action: 'push button', fields }, d => d.message !== undefined || d.error !== undefined, 5000);
-    } catch (err) {
-        console.log('Finish command error', err);
-    }
+// Step 4: Select Mode - Previous
+btnModePrev.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  hideSpinner();
+  showStep(3);
+});
 
-    // wait 3 seconds to allow device to apply
-    await new Promise(r => setTimeout(r, 3000));
-    hideCenterSpinner();
-    // reload login
+// Step 4: Select Mode - Next
+btnModeNext.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Send mode selection commands
+  const fields = {};
+  if (modeAp.checked) fields['AP Button'] = true;
+  if (modeSta.checked) fields['STA Button'] = true;
+
+  try {
+    await sendWSMessage({
+      setting: "command",
+      action: "push button",
+      fields: fields
+    }, 5000);
+  } catch (error) {
+    console.error('[QuickStart] Mode selection failed:', error);
+  }
+
+  hideSpinner();
+  showStep(5);
+  loadSummary();
+});
+
+// Step 5: Device Config - Previous
+btnFinishPrev.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  hideSpinner();
+  showStep(4);
+});
+
+// Step 5: Device Config - Finish
+btnFinish.addEventListener('click', async () => {
+  showSpinner();
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  // Send final mode commands
+  const fields = {};
+  if (modeAp.checked) fields['AP Button'] = true;
+  if (modeSta.checked) fields['STA Button'] = true;
+
+  try {
+    await sendWSMessage({
+      setting: "command",
+      action: "push button",
+      fields: fields
+    }, 5000);
+
+    // Wait 3 seconds for device to apply settings
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    hideSpinner();
+    // Redirect to login
     window.location.href = 'index.html';
+  } catch (error) {
+    console.error('[QuickStart] Finish failed:', error);
+    alert('Failed to apply settings. Please try again.');
+    hideSpinner();
+  }
 });
 
-// initial state
+// Initialize
+initWebSocket();
 showStep(1);
 

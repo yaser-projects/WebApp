@@ -4,90 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quick Start - Metal Brain</title>
-
-  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/common-style.css">
   <link rel="stylesheet" href="css/quickstart.css">
 </head>
-
 <body>
-
-  <script>
-    // Lightweight probe: attempt to read device AP SSID, but don't block the UI when probe fails.
-    (function() {
-      // If already authenticated via prior login, allow immediately
-      if (sessionStorage.getItem('metalbrain-auth') === 'ok') return;
-
-      // create a small banner to show probe errors (hidden by default)
-      const warnId = 'qsWarning';
-      let warnEl = document.getElementById(warnId);
-      if (!warnEl) {
-        warnEl = document.createElement('div');
-        warnEl.id = warnId;
-        warnEl.style.cssText = 'background:#4b2; color:#fff; padding:8px 12px; border-radius:6px; display:none; margin:10px auto; max-width:800px; text-align:center;';
-        warnEl.textContent = 'Cannot contact device; QuickStart may not work until you are connected to the device.';
-        const container = document.querySelector('.qs-container') || document.body;
-        container.parentNode.insertBefore(warnEl, container);
-      }
-
-      const proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-      let ws;
-      try {
-        ws = new WebSocket(proto + location.host + '/ws');
-      } catch (e) {
-        // don't redirect — just show a warning and allow user to continue
-        warnEl.style.display = 'block';
-        return;
-      }
-
-      // If no response in 5s, show warning and allow the page
-      const to = setTimeout(() => {
-        try { ws.close(); } catch (e) {}
-        warnEl.style.display = 'block';
-      }, 5000);
-
-      ws.onopen = () => {
-        try { ws.send(JSON.stringify({ setting: 'device', action: 'read', fields: ['AP SSID'] })); } catch (e) { /* ignore */ }
-      };
-
-      ws.onmessage = (ev) => {
-        clearTimeout(to);
-        let data;
-        try { data = JSON.parse(ev.data); } catch (e) { data = null; }
-
-        try { ws.close(); } catch (e) {}
-
-        if (data && typeof data['AP SSID'] !== 'undefined') {
-          if (data['AP SSID'] === 'Metal Brain') {
-            // device in setup mode — allow QuickStart
-            return;
-          }
-          // device configured -> go to dashboard
-          window.location.href = 'dashboard.html';
-        } else {
-          // unexpected response -> show warning and allow the page
-          warnEl.style.display = 'block';
-        }
-      };
-
-      ws.onerror = () => {
-        clearTimeout(to);
-        try { ws.close(); } catch (e) {}
-        warnEl.style.display = 'block';
-      };
-    })();
-  </script>
-
   <div class="qs-container">
+    <!-- Page Header -->
+    <div class="qs-header">
+      <div class="qs-header-title">METAL BRAIN</div>
+      <h1>Quick Start</h1>
+      <p class="qs-sub">Configure your device in 5 guided steps.</p>
+      <span class="badge">
+        <span>●</span>
+        LOCAL DEVICE
+      </span>
+    </div>
 
-    <!-- عنوان صفحه -->
-    <h1>Quick Start</h1>
-    <p class="qs-sub">Setup your Metal Brain device in 5 steps</p>
-
-    <!-- کارت -->
+    <!-- Main Card -->
     <div class="qs-card">
-
-      <!-- STEP 1 -->
-      <div class="qs-step active" id="step1">
+      <!-- Step 1: Start Config -->
+      <div class="qs-step active" data-step="1" id="step1">
         <fieldset>
           <legend>Start Config</legend>
           <div class="step-content">
@@ -95,88 +31,105 @@
             <ol>
               <li>Configure device Access Point</li>
               <li>Connect to your Modem (Station)</li>
-              <li>Select operating modes (AP/STA)</li>
+              <li>Select operating modes (AP / STA)</li>
               <li>Review and finish</li>
             </ol>
           </div>
         </fieldset>
-        <div class="step-actions right">
-          <button class="btn primary" id="startBtn">Start</button>
+        <div class="step-actions">
+          <button type="button" class="btn primary" id="btnStart">Start</button>
         </div>
       </div>
 
-      <!-- STEP 2 -->
-      <div class="qs-step" id="step2">
+      <!-- Step 2: Access Point -->
+      <div class="qs-step" data-step="2" id="step2">
         <fieldset>
           <legend>Access Point</legend>
-
+          
           <div class="qs-field-inline">
-            <label for="apHidden">Hidden Network</label>
-            <input id="apHidden" type="checkbox">
+            <label for="apHidden">Hidden network</label>
+            <input type="checkbox" id="apHidden">
           </div>
 
-          <div class="qs-field stacked">
-            <label for="apSsid">SSID</label>
+          <div class="qs-field">
+            <label for="apSsid">SSID (1-32 characters, not "Metal Brain")</label>
             <div class="input-wrap">
               <span class="icon">📶</span>
-              <input id="apSsid" type="text" minlength="1" maxlength="32" required placeholder="Device SSID">
+              <input
+                id="apSsid"
+                type="text"
+                minlength="1"
+                maxlength="32"
+                required
+                placeholder="Device SSID">
             </div>
             <small class="error" id="apSsidError"></small>
           </div>
 
-          <div class="qs-field stacked">
-            <label for="apPass">Pre-Shared Key (8-64 chars)</label>
+          <div class="qs-field">
+            <label for="apPass">Pre-Shared Key (8-64 characters)</label>
             <div class="input-wrap">
               <span class="icon">🔑</span>
-              <input id="apPass" type="text" minlength="8" maxlength="64" required placeholder="8-64 characters">
+              <input
+                id="apPass"
+                type="text"
+                minlength="8"
+                maxlength="64"
+                required
+                placeholder="8-64 characters">
             </div>
             <small class="error" id="apPassError"></small>
           </div>
         </fieldset>
-
         <div class="step-actions">
-          <button class="btn primary" id="saveAp">Next</button>
+          <button type="button" class="btn primary" id="btnApNext">Next</button>
         </div>
       </div>
 
-      <!-- STEP 3 -->
-      <div class="qs-step" id="step3">
+      <!-- Step 3: Station Mode -->
+      <div class="qs-step" data-step="3" id="step3">
         <fieldset>
           <legend>Station Mode</legend>
 
           <div class="qs-field-inline">
-            <input id="staHasInternet" type="checkbox">
+            <input type="checkbox" id="staHasInternet">
             <label for="staHasInternet">I have internet</label>
           </div>
 
           <div class="qs-field">
-            <label for="staNetworks">Modem SSID</label>
+            <label for="staSsid">Modem SSID (1-32 characters)</label>
             <div class="input-wrap">
               <span class="icon">📡</span>
-              <select id="staNetworks" disabled>
+              <select id="staSsid" disabled>
                 <option value="">(Select or type)</option>
               </select>
             </div>
-            <small class="error" id="staNetError"></small>
+            <small class="error" id="staSsidError"></small>
           </div>
 
           <div class="qs-field">
-            <label for="staPass">Modem Pre-Shared Key (0-64 chars)</label>
+            <label for="staPass">Modem Pre-Shared Key (0-64 characters)</label>
             <div class="input-wrap">
               <span class="icon">🔒</span>
-              <input id="staPass" type="text" minlength="0" maxlength="64" disabled placeholder="Optional">
+              <input
+                id="staPass"
+                type="text"
+                minlength="0"
+                maxlength="64"
+                disabled
+                placeholder="Optional">
             </div>
             <small class="error" id="staPassError"></small>
           </div>
         </fieldset>
-
         <div class="step-actions">
-          <button class="btn primary" id="saveSta">Next</button>
+          <button type="button" class="btn secondary" id="btnStaPrev">Previous</button>
+          <button type="button" class="btn primary" id="btnStaNext">Next</button>
         </div>
       </div>
 
-      <!-- STEP 4 -->
-      <div class="qs-step" id="step4">
+      <!-- Step 4: Select Mode -->
+      <div class="qs-step" data-step="4" id="step4">
         <fieldset>
           <legend>Select Mode</legend>
 
@@ -191,45 +144,54 @@
           </div>
           <small class="error" id="selectModeError"></small>
         </fieldset>
-
         <div class="step-actions">
-          <button class="btn primary" id="nextToStep5">Next</button>
+          <button type="button" class="btn secondary" id="btnModePrev">Previous</button>
+          <button type="button" class="btn primary" id="btnModeNext">Next</button>
         </div>
       </div>
 
-      <!-- STEP 5 -->
-      <div class="qs-step" id="step5">
+      <!-- Step 5: Device Config (Finish) -->
+      <div class="qs-step" data-step="5" id="step5">
         <fieldset>
           <legend>Device Config</legend>
           <div class="summary-table">
             <dl>
-              <dt>Device SSID:</dt><dd id="summaryAPSSID">-</dd>
-              <dt>Device PSK:</dt><dd id="summaryAPPsk">-</dd>
-              <dt>Modem SSID:</dt><dd id="summaryModemSSID">-</dd>
-              <dt>Modem PSK:</dt><dd id="summaryModemPsk">-</dd>
-              <dt>Mode:</dt><dd id="summaryMode">-</dd>
+              <dt>Device SSID:</dt>
+              <dd id="summaryAPSSID">-</dd>
+              <dt>Device Pre-Shared Key:</dt>
+              <dd id="summaryAPPsk">-</dd>
+              <dt>Modem SSID:</dt>
+              <dd id="summaryModemSSID">-</dd>
+              <dt>Modem Pre-Shared Key:</dt>
+              <dd id="summaryModemPsk">-</dd>
+              <dt>Mode:</dt>
+              <dd id="summaryMode">-</dd>
             </dl>
           </div>
         </fieldset>
-
         <div class="step-actions">
-          <button class="btn primary" id="finishBtn">Finish</button>
+          <button type="button" class="btn secondary" id="btnFinishPrev">Previous</button>
+          <button type="button" class="btn primary" id="btnFinish">Finish</button>
         </div>
       </div>
-
     </div>
 
-    <!-- گام ها -->
+    <!-- Progress Dots -->
     <div class="qs-dots">
-      <span class="dot active"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
+      <span class="dot active" data-dot="1"></span>
+      <span class="dot" data-dot="2"></span>
+      <span class="dot" data-dot="3"></span>
+      <span class="dot" data-dot="4"></span>
+      <span class="dot" data-dot="5"></span>
     </div>
-
   </div>
 
-  <script src="js/quickstart.js"></script>
+  <!-- Progress Spinner -->
+  <div id="qsSpinner" class="center-spinner hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <script type="module" src="js/quickstart.js"></script>
 </body>
 </html>
+

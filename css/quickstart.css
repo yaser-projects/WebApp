@@ -1,518 +1,280 @@
+/* ============================================
+   Metal Brain - QuickStart Page Styles
+   ============================================ */
+
 .qs-container {
-  /*
-    کانتینر اصلی صفحه کوئیک‌استارت
-    - max-width: محدودیت عرض کارت برای خوانایی
-    - margin: auto برای وسط چین کردن صفحه
-    - padding: فاصله داخلی اطراف محتوا
-    - text-align: center برای قرارگیری عنوان و زیرعنوان در مرکز
-  */
-  max-width: 600px;
-  margin: auto;
-  padding: 40px 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.qs-header {
   text-align: center;
+  margin-bottom: 28px;
+}
+
+.qs-header-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.qs-header h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
 }
 
 .qs-sub {
-  /*
-    زیرعنوان صفحه (توضیح مختصر زیر عنوان Quick Start)
-    رنگ و فاصله پایینی تنظیم شده برای جداسازی از کارت
-  */
-  color: #9aa0b5;
-  margin-bottom: 20px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
 }
 
 .qs-card {
-  /*
-    کارت محتوا: پس‌زمینه نیمه‌شفاف، گوشه‌های گرد و مرز نرم
-    - padding: فاصله داخلی کارت
-    - backdrop-filter: جلوه بلور برای تم عمق‌دار
-  */
-  background: rgba(255,255,255,0.05);
-  border-radius: 18px;
-  padding: 24px;
-  border: 1px solid rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  position: relative; /* اجازه می‌دهد کنترل‌های absolute داخل کارت قرار گیرند */
+  position: relative;
+  margin: 0 auto 30px auto;
+  max-width: 520px;
+  width: 100%;
 }
 
-.qs-step { display: none; }
-.qs-step.active { display: block; }
+/* Steps */
+.qs-step {
+  display: none;
+}
 
-/*
-  هر مرحله (step) به صورت جداگانه تعریف می‌شود. فقط مرحله‌ای که
-  کلاس .active دارد نمایش داده می‌شود؛ بقیه پنهان می‌مانند.
-*/
+.qs-step.active {
+  display: block;
+}
 
-/* (ریست کردن استایل پیش‌فرض fieldset/legend انجام می‌شود در بلاک بعدی) */
 fieldset {
   border: none;
   padding: 0;
-  margin: 0;
+  margin: 0 0 20px 0;
 }
+
 legend {
-  /*
-    عنوان هر بخش (fieldset)
-    - text-align: left تا عنوان از سمت چپ شروع شود (خواناتر)
-    - border-bottom برای جداکردن عنوان از محتوای مرحله
-  */
   width: 100%;
   text-align: left;
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 
 .step-content {
-  /*
-    محتوای توضیحی هر مرحله
-    - text-align: left برای خوانایی متن‌های گام‌ها
-    - padding: اندکی فاصله داخلی تا متن خیلی چسبیده به لبه نباشد
-  */
-  margin-bottom: 16px;
-  color: #aab;
-  font-size: 14px;
-  text-align: left; /* متن مرحله‌ها از چپ شروع شود */
-  padding: 0; /* حذف فاصلهٔ اضافی از چپ برای هم‌راستا شدن با عنوان */
-}
-.step-content ol {
-  /*
-    لیست شماره‌دار داخل توضیحات هر مرحله
-    - margin: فاصله بالایی و کناری لیست (فاصلهٔ کناری کمی بیشتر برای خوانایی)
-    - padding-left: فاصله داخلی بین شماره و متن
-    - line-height: فاصله بین خطوط برای خوانایی بهتر
-    - list-style-position: outside تا شماره‌ها در بیرون بلوک متن قرار گیرند
-  */
-  margin: 8px 0 0 0; /* بدون حاشیهٔ چپ تا متن با عنوان هم‌راستا شود */
-  padding-left: 18px;  /* فاصله بین شماره و متن */
-  line-height: 1.6;
+  margin-bottom: 20px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
   text-align: left;
-  list-style-position: outside;
+  line-height: 1.6;
 }
 
-/* center spinner */
-.center-spinner {
-  /*
-    پروگرس / اسپینر مرکزی که هنگام پردازش طولانی نمایش داده می‌شود
-    - position: fixed و transform برای قرارگیری دقیق وسط صفحه
-    - z-index بالا تا روی تمام محتوا قرار گیرد
-  */
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 96px;
-  height: 96px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-.center-spinner.hidden { display: none; }
-.spinner {
-  /*
-    دایره چرخشی داخل center-spinner
-    - border-top-color رنگ اصلی چرخش را مشخص می‌کند
-    - animation: spin برای حرکت پیوسته
-  */
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 6px solid rgba(0,0,0,0.08);
-  border-top-color: #05d0c5;
-  animation: spin 1s linear infinite;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.step-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-.step-actions.right { justify-content: flex-end; }
-.step-actions .btn { min-width: 88px; }
-
-/*
-  کانتینر دکمه‌های حرکت بین مراحل (Next / Finish)
-  - justify-content: flex-end برای قرارگیری دکمه‌ها در سمت راست کارت
-  - gap و min-width برای فضای مناسب و سایز قابل کلیک دکمه‌ها
-*/
-
-.summary-table dl { 
-  /*
-    جدول خلاصهٔ تنظیمات در مرحلهٔ پنجم
-    - از grid برای ستون ثابتِ label و ستونِ متغیرِ مقدار استفاده شده
-  */
-  text-align: left; 
-  display: grid; 
-  grid-template-columns: 180px 1fr; 
-  gap: 12px 16px;
-  margin: 16px 0;
-}
-.summary-table dt { 
-  color: #889;
-  font-weight: 500;
-}
-.summary-table dd { 
-  margin: 0;
-  color: #fff;
-  word-break: break-all;
+.step-content ol {
+  margin: 12px 0 0 20px;
+  padding-left: 0;
+  line-height: 1.8;
 }
 
-.hidden { display: none !important; }
+.step-content li {
+  margin-bottom: 8px;
+}
 
-/* کلاس کمکی برای پنهان کردن عناصر به‌صورت قاطع */
-
+/* Fields */
 .qs-field {
-  /*
-    ردیف‌های فیلدها (label + input)
-    از grid استفاده شده تا label در ستون اول و input در ستون دوم قرار گیرد
-    - text-align: right برای قرارگیری labelها در سمت راست (برای RTL)
-  */
-  text-align: right;
-  margin-bottom: 16px;
-  display: grid;
-  grid-template-columns: 140px 1fr; /* label | input - ثابت کردن عرض لیبل برای تراز صحیح */
-  gap: 12px 12px;
-  align-items: center;
+  margin-bottom: 18px;
 }
+
 .qs-field label {
-  /* استایل لیبل فیلدها */
-  font-size: 13px;
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
   font-weight: 500;
-  color: #aab;
-  text-align: right;
-  white-space: nowrap;
-  grid-column: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.qs-field .input-wrap {
-  /* کانتینر ورودی و آیکون */
-  grid-column: 2;
-  justify-self: stretch; /* کشیده شدن تا عرض ستون برای flush شدن به راست */
-  width: 100%;
-  padding: 0 8px; /* فضای داخلی اندک برای آیکون + متن */
-}
-.qs-field input, 
-.qs-field select {
-  width: 100%;
 }
 
 .input-wrap {
-  /*
-    جعبهٔ ورودی شامل آیکون و فیلد
-    - direction: ltr تا متن‌های انگلیسی/اعداد به شکل طبیعی نمایش داده شوند
-    - padding و border برای ظاهر کارت‌مانند
-  */
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.08);
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 0 8px;
-  transition: all 200ms ease;
-  direction: ltr;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  padding: 0 12px;
+  transition: all var(--transition);
+  width: 100%;
+  max-width: 480px;
 }
+
 .input-wrap:focus-within {
-  border-color: #05d0c5;
-  background: rgba(5,208,197,0.05);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  background: rgba(0, 0, 0, 0.5);
 }
+
 .input-wrap .icon {
-  /* آیکون کوچک کنار فیلد */
-  font-size: 18px;
-  margin-left: 8px;
-  margin-right: 0;
+  font-size: 1.1rem;
+  margin-right: 10px;
   opacity: 0.7;
   flex-shrink: 0;
 }
+
 .input-wrap input,
 .input-wrap select {
-  /* خود عنصر ورودی */
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
-  padding: 10px 8px;
-  font-size: 14px;
-  text-align: right;
+  padding: 10px 0;
+  color: var(--text);
+  font-size: 0.9rem;
 }
-.input-wrap input::placeholder,
-.input-wrap select {
-  color: #889;
-}
+
 .input-wrap input:focus,
 .input-wrap select:focus {
   outline: none;
+  box-shadow: none;
+}
+
+.input-wrap select {
+  cursor: pointer;
 }
 
 .error {
-  /* پیام‌های خطا که زیر فیلدها نمایش داده می‌شوند */
   display: block;
-  color: #ff6b6b;
-  font-size: 12px;
-  margin-top: 2px;
-  text-align: right;
-  grid-column: 1 / -1;
+  color: var(--danger);
+  font-size: 0.75rem;
+  margin-top: 4px;
+  min-height: 18px;
 }
 
+/* Inline Fields (Checkboxes) */
 .qs-field-inline {
-  /* ردیف‌های خاص مانند چک‌باکس "I have internet" یا "Hidden Network" */
-  display: grid;
-  grid-template-columns: 1fr auto; /* label | checkbox */
-  gap: 8px;
-  margin: 12px 0;
+  display: flex;
   align-items: center;
-  justify-items: end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding: 8px 0;
 }
 
-/* موقعیت دادن چک‌باکس "Hidden Network" در بالا-راست کارت (برای مرحلهٔ Access Point)
-   اگر این ردیف اولین عنصر داخل fieldset باشد، آن را به صورت absolute در بالا قرار می‌دهیم */
-fieldset > .qs-field-inline:first-child {
-  position: absolute;
-  top: 18px;    /* متناسب با padding کارت */
-  left: 18px;   /* گسترش تا لبهٔ چپ و راست کارت */
-  right: 18px;
-  margin: 0;
-  display: flex;             /* قرارگیری متن و چک‌باکس در یک خط */
-  align-items: center;
-  justify-content: space-between; /* متن در سمت چپ، چک‌باکس در سمت راست */
-  gap: 8px;
-}
-fieldset > .qs-field-inline:first-child label {
-  text-align: left; /* متن در سمت چپ نمایش داده شود */
-  white-space: nowrap; /* یک خط بماند */
-  margin: 0;
-}
-fieldset > .qs-field-inline:first-child input {
-  order: 2; /* اطمینان از اینکه چک‌باکس در سمت راست قرار می‌گیرد */
-}
-
-/* ورودی‌ها کمی به سمت داخل کارت فشرده‌تر باشند تا لبهٔ راستِ کارت را پر کنند */
-.input-wrap {
-  padding: 0 10px;
-}
-
-.input-wrap input,
-.input-wrap select {
-  padding: 10px 8px; /* حفظ فاصله داخلی مناسب */
-}
-
-/* ===== Access Point specific: SSID و PSK برچسب بالای تکس‌باکس ===== */
-#step2 .qs-field {
-  grid-template-columns: 1fr; /* label بالای input */
-  gap: 6px 0;
-  align-items: start;
-}
-#step2 .qs-field label {
-  display: block;
-  white-space: normal; /* اجازهٔ شکست خط در صورت لزوم */
-  text-align: right; /* نگه داشتن ترازبندی راست برای زبان فارسی */
-  margin-bottom: 4px;
-}
-#step2 .qs-field .input-wrap {
-  justify-self: end;      /* قرارگیری ورودی در سمت راست کارت */
-  max-width: 520px;      /* اندازهٔ یکسان برای همه تکس‌باکس‌ها */
-  width: 100%;
-}
-#step2 .qs-field label { grid-column: 1 / -1; }
-#step2 .qs-field .input-wrap { grid-column: 1 / -1; }
-#step2 .qs-field .input-wrap input,
-#step2 .qs-field .input-wrap select {
-  width: 100%;
-  padding: 12px 10px;    /* افزایش ارتفاع یکنواخت */
-  box-sizing: border-box;
-}
-#step2 .qs-field .error { grid-column: 1 / -1; text-align: right; }
-
-/* Responsive tweak: در صفحه‌های خیلی باریک، max-width را حذف کن */
-@media (max-width: 520px) {
-  #step2 .qs-field .input-wrap { max-width: 100%; }
-}
 .qs-field-inline label {
   margin: 0;
   font-weight: 400;
-  white-space: nowrap;
-  grid-column: 1;
-  text-align: right;
+  cursor: pointer;
+  user-select: none;
 }
-.qs-field-inline input {
-  grid-column: 2;
-  justify-self: start; /* checkbox at the right of the field */
+
+.qs-field-inline input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+/* Step 2: Access Point - Hidden Network at top right */
+#step2 .qs-field-inline:first-child {
+  position: absolute;
+  top: 18px;
+  right: 18px;
   margin: 0;
 }
 
-.mode-switch {
-  /* گروه سوئیچ‌های مود (AP / STA) */
-  margin: 14px 0;
-  display: flex;
-  justify-content: space-between;
+#step2 fieldset {
+  padding-top: 50px;
 }
 
+/* Step Actions */
+.step-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Summary Table */
+.summary-table {
+  margin: 20px 0;
+}
+
+.summary-table dl {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 12px 16px;
+  text-align: left;
+}
+
+.summary-table dt {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.summary-table dd {
+  margin: 0;
+  color: var(--text);
+  word-break: break-word;
+}
+
+/* Progress Dots */
 .qs-dots {
-  margin-top: 20px;
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 30px;
 }
+
 .dot {
   width: 10px;
   height: 10px;
-  background: #666;
   border-radius: 50%;
-}
-.dot.active { background: #05d0c5; }
-
-/* Quick fix: strong flex-based override for #step2 to ensure label-left and equal-width inputs
-   This is added late in the file so it overrides earlier grid rules that caused layout regressions. */
-#step2 .qs-field {
-  display: flex !important;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-#step2 .qs-field label {
-  width: 120px;        /* fixed label column width */
-  text-align: left;    /* label on the left */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 0 0 120px;
-}
-#step2 .qs-field .input-wrap {
-  flex: 1 1 420px;     /* inputs take remaining space but aim for equal width */
-  max-width: calc(100% - 150px);
-  justify-self: end;
-}
-#step2 .qs-field .input-wrap input,
-#step2 .qs-field .input-wrap select {
-  width: 100%;
-  box-sizing: border-box;
+  background: var(--border);
+  transition: background var(--transition);
 }
 
-@media (max-width: 520px) {
-  /* revert to stacked layout on small screens */
-  #step2 .qs-field { display: block !important; }
-  #step2 .qs-field label { text-align: right; width: auto; }
-  #step2 .qs-field .input-wrap { width: 100%; max-width: 100%; }
+.dot.active {
+  background: var(--accent);
 }
 
-/* Specific stacked-field style: used for SSID and PSK in step2
-   Ensures label sits above the input and inputs are equal width. */
-.qs-field.stacked {
-  display: flex !important;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-.qs-field.stacked label {
-  display: block;
-  text-align: right;
-  white-space: normal;
-  margin-bottom: 4px;
-  color: #aab;
-}
-.qs-field.stacked .input-wrap {
-  width: 420px;
-  max-width: calc(100% - 10px);
-  justify-self: end;
-}
-.qs-field.stacked .input-wrap input,
-.qs-field.stacked .input-wrap select {
-  padding: 12px 10px;
-  width: 100%;
-  box-sizing: border-box;
+/* Responsive */
+@media (max-width: 768px) {
+  .qs-container {
+    padding: 20px 12px;
+  }
+  .qs-card {
+    max-width: 100%;
+  }
+  .qs-header h1 {
+    font-size: 1.6rem;
+  }
+  .summary-table dl {
+    grid-template-columns: 140px 1fr;
+    gap: 10px 12px;
+  }
+  .input-wrap {
+    max-width: 100%;
+  }
 }
 
-@media (max-width: 520px) {
-  .qs-field.stacked .input-wrap { width: 100%; max-width: 100%; }
+@media (max-width: 480px) {
+  .qs-card {
+    padding: 16px;
+  }
+  #step2 .qs-field-inline:first-child {
+    position: static;
+    margin-bottom: 18px;
+  }
+  #step2 fieldset {
+    padding-top: 0;
+  }
+  .summary-table dl {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .summary-table dt {
+    margin-bottom: 4px;
+  }
 }
 
-/* Final override: enforce Access Point row layout exactly as requested:
-   1) Hidden Network label at left, its checkbox at the right of the card (single line)
-   2) SSID label at left, SSID input to the right (equal-width inputs)
-   3) Pre-Shared Key label at left, PSK input to the right
-   4) Input text and placeholder are left-aligned for readability
-*/
-/* Place Hidden Network label in the left column and the checkbox
-   in the input column (aligned with SSID/PSK inputs) */
-#step2 fieldset > .qs-field-inline:first-child {
-  display: grid;
-  grid-template-columns: 140px 1fr; /* label | input column */
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0 16px 0;
-}
-#step2 fieldset > .qs-field-inline:first-child label {
-  grid-column: 1;
-  text-align: left;
-  white-space: nowrap;
-  margin: 0;
-}
-#step2 fieldset > .qs-field-inline:first-child input {
-  grid-column: 2;
-  justify-self: end; /* place checkbox at the right edge of input column */
-}
-
-/* Make every qs-field in step2 a two-column row: label | input */
-#step2 .qs-field,
-#step2 .qs-field.stacked {
-  display: flex !important;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  margin: 12px 0;
-}
-
-#step2 .qs-field label,
-#step2 .qs-field.stacked label {
-  flex: 0 0 140px; /* fixed label column width */
-  text-align: left; /* label on the left */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #aab;
-}
-
-#step2 .qs-field .input-wrap,
-#step2 .qs-field.stacked .input-wrap {
-  flex: 1 1 420px;    /* inputs take remaining space but aim for equal width */
-  max-width: calc(100% - 150px);
-  justify-self: end;
-}
-
-#step2 .qs-field .input-wrap input,
-#step2 .qs-field .input-wrap select,
-#step2 .qs-field.stacked .input-wrap input,
-#step2 .qs-field.stacked .input-wrap select {
-  width: 100%;
-  box-sizing: border-box;
-  text-align: left;    /* text inside inputs starts at the left */
-  direction: ltr;      /* ensure placeholders/text flow naturally */
-  padding: 12px 10px;
-}
-
-/* Placeholder alignment */
-#step2 .qs-field .input-wrap input::placeholder,
-#step2 .qs-field .input-wrap select::placeholder {
-  text-align: left;
-  color: #889;
-}
-
-/* errors under inputs stay aligned to the input (on the left of the input area) */
-#step2 .qs-field .error,
-#step2 .qs-field.stacked .error {
-  grid-column: unset;
-  text-align: left;
-  margin-left: 140px; /* align under the input column */
-}
-
-@media (max-width: 520px) {
-  /* small screens: stack label above input for readability */
-  #step2 .qs-field,
-  #step2 .qs-field.stacked { display: block !important; }
-  #step2 .qs-field label,
-  #step2 .qs-field.stacked label { text-align: right; margin-bottom: 6px; }
-  #step2 .qs-field .error,
-  #step2 .qs-field.stacked .error { margin-left: 0; text-align: right; }
-}
