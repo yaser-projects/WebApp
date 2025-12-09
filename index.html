@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Metal Brain Login</title>
+
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- استایل‌ها -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+  <div class="main-container login-wrapper">
+    <div class="card login-card">
+      <div class="login-card-inner">
+
+        <!-- هدر بالا -->
+        <div class="login-header">
+          <div class="login-header-main">
+            <div class="login-header-title">METAL BRAIN</div>
+            <h1>LOGIN</h1>
+            <small>Secure access to your Metal Brain device.</small>
+          </div>
+          <span class="badge">
+            <span>●</span>
+            LOCAL DEVICE
+          </span>
+        </div>
+
+        <!-- فرم لاگین -->
+        <form id="loginForm" novalidate>
+          <!-- یوزرنیم -->
+          <div class="field">
+            <label for="username">Username (1–16 characters)</label>
+            <div class="field-icon-wrapper">
+              <span class="left-icon">👤</span>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                minlength="1"
+                maxlength="16"
+                required
+                autocomplete="username"
+                aria-describedby="loginError"
+                placeholder="Device user">
+            </div>
+          </div>
+
+          <!-- پسورد -->
+          <div class="field">
+            <label for="password">Password (1–16 characters)</label>
+            <div class="field-icon-wrapper">
+              <span class="left-icon">🔒</span>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                minlength="1"
+                maxlength="16"
+                required
+                autocomplete="current-password"
+                aria-describedby="loginError"
+                placeholder="Device password">
+              <button
+                type="button"
+                class="right-btn"
+                id="togglePwd"
+                aria-label="Toggle password visibility"
+                aria-pressed="false"
+                title="Show password">👁</button>
+            </div>
+          </div>
+
+          <!-- خطاها -->
+          <p id="loginError" class="error-msg" aria-live="polite"></p>
+
+          <noscript>
+            <p class="error-msg">JavaScript is required to use this login form.</p>
+          </noscript>
+
+          <!-- دکمه لاگین -->
+          <div class="login-footer">
+            <small>Credentials are stored on your Metal Brain device.</small>
+            <button id="loginBtn" type="submit" class="btn primary" disabled>LOGIN</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- لاجیک لاگین (وب‌سوکت و ...) -->
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

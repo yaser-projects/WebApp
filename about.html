@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Metal Brain</title>
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/about.css">
+</head>
+<body>
+
+  <!-- جلوگیری از ورود بدون لاگین -->
+  <script type="module">
+    import { requireAuth } from "./js/auth.js";
+    requireAuth();
+  </script>
+
+  <div class="about-container">
+    <div class="about-card">
+      <!-- هدر لوگو / نام -->
+      <div class="about-header">
+        <div class="about-logo">MB</div>
+        <div class="about-title">
+          <h1>BRAIN <span>METAL</span></h1>
+          <p>Embedded Wi-Fi device for local network control.</p>
+        </div>
+      </div>
+
+      <!-- اطلاعات دستگاه -->
+      <section class="about-section">
+        <h2>Device Info</h2>
+        <p class="about-hint">Information is read directly from your Metal Brain device.</p>
+        <div id="deviceInfo" class="info-grid">
+          <!-- با جاوااسکریپت پر می‌شود -->
+        </div>
+        <p id="aboutError" class="error-msg"></p>
+      </section>
+    </div>
+  </div>
+
+  <script src="js/about.js"></script>
+</body>
+</html>

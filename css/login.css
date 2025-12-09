@@ -1,0 +1,108 @@
+/* css/login.css */
+
+.login-wrapper {
+  max-width: 420px;
+  width: 100%;
+}
+
+.login-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 10% 0, rgba(5, 208, 197, 0.08), transparent 55%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.login-card-inner {
+  position: relative;
+}
+
+/* هدر لاگین */
+.login-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.login-header-title {
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+
+.login-header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-header-main h1 {
+  font-size: 1.5rem;
+}
+
+.login-header-main small {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* آیکون‌های داخل فیلدها */
+.field-icon-wrapper {
+  position: relative;
+}
+
+.field-icon-wrapper input {
+  padding-left: 34px;
+  padding-right: 34px;
+}
+
+.field-icon-wrapper .left-icon {
+  position: absolute;
+  top: 50%;
+  left: 11px;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.field-icon-wrapper .right-btn {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  border: none;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* فوتر فرم لاگین */
+.login-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.login-footer small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 480px) {
+  .login-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

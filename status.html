@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Status - Metal Brain</title>
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/status.css">
+</head>
+<body>
+
+  <!-- جلوگیری از ورود بدون لاگین -->
+  <script type="module">
+    import { requireAuth } from "./js/auth.js";
+    requireAuth();
+  </script>
+
+  <div class="status-container">
+    <div class="status-card">
+      <header class="status-header">
+        <div>
+          <h1>Status</h1>
+          <p>Active DHCP clients connected to your Access Point.</p>
+        </div>
+        <button id="refreshBtn" class="btn secondary">Refresh</button>
+      </header>
+
+      <div class="ap-host" id="apHostName">AP Host: —</div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>IP Address</th>
+              <th>MAC Address</th>
+            </tr>
+          </thead>
+          <tbody id="clientsBody">
+            <tr><td colspan="4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p id="statusError" class="error-msg"></p>
+    </div>
+  </div>
+
+  <script src="js/status.js"></script>
+</body>
+</html>

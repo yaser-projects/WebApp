@@ -1,0 +1,86 @@
+/* ==============
+   STATUS PAGE
+   ============== */
+
+.status-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 80px 16px 40px;
+}
+
+.status-card {
+  background: rgba(4, 8, 24, 0.9);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+  padding: 20px 18px 22px;
+  backdrop-filter: blur(12px);
+}
+
+/* هدر */
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.status-header h1 {
+  margin-bottom: 4px;
+}
+
+.status-header p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #9aa0b5;
+}
+
+.ap-host {
+  font-size: 0.85rem;
+  color: #9aa0b5;
+  margin-bottom: 10px;
+}
+
+/* جدول */
+.table-wrapper {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  background: rgba(0,0,0,0.35);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+thead {
+  background: rgba(5, 208, 197, 0.09);
+}
+
+th, td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+
+/* موبایل */
+@media (max-width: 640px) {
+  .status-container {
+    padding-top: 70px;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 28px;
+  }
+
+  /* اگر خیلی تنگ شد، می‌تونی ستون Name رو کمی جمع‌تر ببینی */
+}
+
