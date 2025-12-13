@@ -1,86 +1,14 @@
-const STORE_KEY = "mb_devices_v1";
+"use strict";
 
-function nowTime() {
-  const d = new Date();
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
+/**
+ * User Interface list data (local demo).
+ * Replace this later with real data source (WebSocket, API, etc.).
+ */
 
-function seedIfEmpty() {
-  const existing = loadDevices();
-  if (existing.length) return;
+const STORE_KEY = "ui_objects_v1";
 
-  const demo = [
-    { id: crypto.randomUUID(), name: "Remote - Living Room", last: "Last hit: 433.92 MHz • 24-bit", time: nowTime(), state: "good", tag: "Ready" },
-    { id: crypto.randomUUID(), name: "Gate Controller", last: "Last hit: 315.00 MHz • EV1527", time: nowTime(), state: "warn", tag: "New" },
-    { id: crypto.randomUUID(), name: "AC Remote", last: "Last hit: 868.30 MHz • RAW", time: nowTime(), state: "bad", tag: "Offline" },
-  ];
-  localStorage.setItem(STORE_KEY, JSON.stringify(demo));
-}
-
-function loadDevices() {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveDevices(list) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(list));
-}
-
-function initials(name) {
-  const parts = (name || "").trim().split(/\s+/).slice(0, 2);
-  const i = parts.map(p => p[0]?.toUpperCase()).join("");
-  return i || "R";
-}
-
-function badgeClass(state) {
-  if (state === "good") return "good";
-  if (state === "warn") return "warn";
-  if (state === "bad") return "bad";
-  return "";
-}
-
-function render(list) {
-  const container = document.getElementById("list");
-  const count = document.getElementById("countBadge");
-  const empty = document.getElementById("emptyState");
-
-  count.textContent = `${list.length} remotes`;
-
-  container.innerHTML = "";
-  if (!list.length) {
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-
-  list.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "item";
-    el.innerHTML = `
-      <div class="avatar">${initials(item.name)}</div>
-      <div class="meta">
-        <div class="name">${escapeHtml(item.name || "Unnamed Remote")}</div>
-        <div class="sub">${escapeHtml(item.last || "No activity yet")}</div>
-      </div>
-      <div class="right">
-        <div class="time">${escapeHtml(item.time || "")}</div>
-        <div class="badges">
-          <span class="badge ${badgeClass(item.state)}">${escapeHtml(item.tag || "Device")}</span>
-        </div>
-      </div>
-    `;
-
-    // Placeholder click: later you can open remote details page or panel
-    el.addEventListener("click", () => {
-      alert(`Remote: ${item.name}\n\n(این فعلاً Placeholder است؛ بعداً می‌تونیم صفحه Details یا کنترل ریموت را طراحی کنیم)`);
-    });
-
-    container.appendChild(el);
-  });
-}
+// Change this to your real devices page filename if different:
+const DEVICES_PAGE = "addDevice.html";
 
 function escapeHtml(str) {
   return String(str)
@@ -91,43 +19,160 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-function setupSearch(all) {
-  const input = document.getElementById("searchInput");
-  input.addEventListener("input", () => {
-    const q = input.value.trim().toLowerCase();
-    const filtered = all.filter(d =>
-      (d.name || "").toLowerCase().includes(q) ||
-      (d.last || "").toLowerCase().includes(q) ||
-      (d.tag || "").toLowerCase().includes(q)
+function initials(name) {
+  const parts = (name || "").trim().split(/\s+/).slice(0, 2);
+  const i = parts.map(p => (p[0] || "").toUpperCase()).join("");
+  return i || "O";
+}
+
+function nowTime() {
+  const d = new Date();
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function loadItems() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function saveItems(list) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+
+function seedIfEmpty() {
+  const existing = loadItems();
+  if (existing.length) return;
+
+  const demo = [
+    { id: crypto.randomUUID(), name: "Remote Scan", sub: "Last hit: 433.92 MHz • 24-bit", time: nowTime(), state: "good", tag: "Ready" },
+    { id: crypto.randomUUID(), name: "Gate Controller", sub: "Last hit: 315.00 MHz • EV1527", time: nowTime(), state: "warn", tag: "New" },
+    { id: crypto.randomUUID(), name: "AC Remote", sub: "No activity yet", time: nowTime(), state: "bad", tag: "Offline" }
+  ];
+
+  saveItems(demo);
+}
+
+function tagClass(state) {
+  if (state === "good") return "good";
+  if (state === "warn") return "warn";
+  if (state === "bad") return "bad";
+  return "";
+}
+
+function render(list) {
+  const container = document.getElementById("list");
+  const countBadge = document.getElementById("countBadge");
+  const emptyState = document.getElementById("emptyState");
+
+  countBadge.textContent = String(list.length);
+  container.innerHTML = "";
+
+  if (!list.length) {
+    emptyState.hidden = false;
+    return;
+  }
+  emptyState.hidden = true;
+
+  for (const item of list) {
+    const el = document.createElement("div");
+    el.className = "item";
+    el.innerHTML = `
+      <div class="avatar">${escapeHtml(initials(item.name))}</div>
+      <div class="meta">
+        <div class="name">${escapeHtml(item.name || "Unnamed Object")}</div>
+        <div class="sub">${escapeHtml(item.sub || "")}</div>
+      </div>
+      <div class="right">
+        <div class="time">${escapeHtml(item.time || "")}</div>
+        <div class="tags">
+          <span class="tag ${tagClass(item.state)}">${escapeHtml(item.tag || "Object")}</span>
+        </div>
+      </div>
+    `;
+
+    el.addEventListener("click", () => {
+      // Placeholder: open object details later
+      alert(`Object: ${item.name}`);
+    });
+
+    container.appendChild(el);
+  }
+}
+
+function setConnectionStatus(isConnected) {
+  const text = document.getElementById("uiStatusText");
+  const dot = document.getElementById("statusDot");
+
+  if (isConnected) {
+    text.textContent = "Ready";
+    dot.classList.add("good");
+  } else {
+    text.textContent = "Disconnected";
+    dot.classList.remove("good");
+  }
+}
+
+function setupSearch(allItems) {
+  const searchRow = document.getElementById("searchRow");
+  const searchInput = document.getElementById("searchInput");
+  const btnClear = document.getElementById("btnClear");
+
+  const apply = () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) return render(allItems);
+
+    const filtered = allItems.filter(x =>
+      (x.name || "").toLowerCase().includes(q) ||
+      (x.sub || "").toLowerCase().includes(q) ||
+      (x.tag || "").toLowerCase().includes(q)
     );
     render(filtered);
+  };
+
+  searchInput.addEventListener("input", apply);
+
+  btnClear.addEventListener("click", () => {
+    searchInput.value = "";
+    render(allItems);
+    searchInput.focus();
   });
+
+  return {
+    open() {
+      searchRow.classList.add("show");
+      searchRow.setAttribute("aria-hidden", "false");
+      searchInput.focus();
+    },
+    close() {
+      searchRow.classList.remove("show");
+      searchRow.setAttribute("aria-hidden", "true");
+      searchInput.value = "";
+      render(allItems);
+    },
+    isOpen() {
+      return searchRow.classList.contains("show");
+    }
+  };
 }
 
 function main() {
   seedIfEmpty();
-  const all = loadDevices();
 
-  render(all);
-  setupSearch(all);
+  // Demo status: disconnected by default
+  setConnectionStatus(false);
 
-  const searchBtn = document.getElementById("searchBtn");
-  const addBtn = document.getElementById("addBtn");
-  const searchRow = document.getElementById("searchRow");
-  const searchInput = document.getElementById("searchInput");
+  const allItems = loadItems();
+  render(allItems);
 
-  searchBtn.addEventListener("click", () => {
-    searchRow.classList.toggle("show");
-    if (searchRow.classList.contains("show")) {
-      searchInput.focus();
-    } else {
-      searchInput.value = "";
-      render(loadDevices());
-    }
+  const searchCtl = setupSearch(allItems);
+
+  document.getElementById("btnSearch").addEventListener("click", () => {
+    if (searchCtl.isOpen()) searchCtl.close();
+    else searchCtl.open();
   });
 
-  addBtn.addEventListener("click", () => {
-    window.location.href = "addDevice.html";
+  document.getElementById("btnDevices").addEventListener("click", () => {
+    window.location.href = DEVICES_PAGE;
   });
 }
 

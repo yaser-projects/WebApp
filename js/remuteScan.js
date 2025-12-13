@@ -6,6 +6,8 @@ import { connectWebSocket } from "./ws.js";
  * This file ONLY updates UI.
  */
 
+const ADD_DEVICE_PAGE = "addDevice.html";
+
 const MIN_MHZ = 300;
 const MAX_MHZ = 928;
 const MAX_HITS = 5;
@@ -14,6 +16,8 @@ const STEP_OPTIONS = [0.25, 0.5, 1.0];        // MHz
 const DWELL_OPTIONS = [10, 20, 30, 50, 100];  // ms
 
 const el = {
+  backBtn: document.getElementById("btnBack"),
+
   statusDot: document.getElementById("statusDot"),
   statusText: document.getElementById("statusText"),
 
@@ -231,6 +235,18 @@ function fillCombos() {
 }
 
 function bindUI() {
+  // Back button (NEW): always returns to Add Device
+  if (el.backBtn) {
+    el.backBtn.addEventListener("click", () => {
+      // If we came from addDevice, prefer history back; otherwise go directly
+      if (document.referrer && document.referrer.includes("addDevice")) {
+        history.back();
+      } else {
+        window.location.href = ADD_DEVICE_PAGE;
+      }
+    });
+  }
+
   // snap during input for both sliders
   el.minSlider.addEventListener("input", updateFillAndText);
   el.maxSlider.addEventListener("input", updateFillAndText);

@@ -1,134 +1,300 @@
-const STORE_KEY = "mb_devices_v1";
+:root{
+  --bg1:#061a2a;
+  --bg2:#071427;
 
-function nowTime() {
-  const d = new Date();
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  --glassA: rgba(255,255,255,.070);
+  --glassB: rgba(255,255,255,.040);
+  --border: rgba(255,255,255,.12);
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.62);
+  --muted2: rgba(255,255,255,.42);
+
+  --good:#35ffb0;
+  --warn:#ffd36a;
+  --bad:#ff6b6b;
+
+  --shadow: 0 18px 60px rgba(0,0,0,.45);
+  --r: 22px;
 }
 
-function seedIfEmpty() {
-  const existing = loadDevices();
-  if (existing.length) return;
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 
-  const demo = [
-    { id: crypto.randomUUID(), name: "Remote - Living Room", last: "Last hit: 433.92 MHz • 24-bit", time: nowTime(), state: "good", tag: "Ready" },
-    { id: crypto.randomUUID(), name: "Gate Controller", last: "Last hit: 315.00 MHz • EV1527", time: nowTime(), state: "warn", tag: "New" },
-    { id: crypto.randomUUID(), name: "AC Remote", last: "Last hit: 868.30 MHz • RAW", time: nowTime(), state: "bad", tag: "Offline" },
-  ];
-  localStorage.setItem(STORE_KEY, JSON.stringify(demo));
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color: var(--text);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
+    radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
+    radial-gradient(900px 600px at 55% 90%, rgba(0, 255, 191, .12), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  overflow-x:hidden;
 }
 
-function loadDevices() {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) || "[]");
-  } catch {
-    return [];
-  }
+.wrap{
+  min-height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 16px;
 }
 
-function saveDevices(list) {
-  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+.card{
+  width:min(460px, 92vw);
+  border-radius: var(--r);
+  border:1px solid var(--border);
+  background: linear-gradient(180deg, var(--glassA), var(--glassB));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding:16px;
 }
 
-function initials(name) {
-  const parts = (name || "").trim().split(/\s+/).slice(0, 2);
-  const i = parts.map(p => p[0]?.toUpperCase()).join("");
-  return i || "R";
+/* Pill header */
+.pill{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius: 18px;
 }
 
-function badgeClass(state) {
-  if (state === "good") return "good";
-  if (state === "warn") return "warn";
-  if (state === "bad") return "bad";
-  return "";
+.pill-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
 }
 
-function render(list) {
-  const container = document.getElementById("list");
-  const count = document.getElementById("countBadge");
-  const empty = document.getElementById("emptyState");
-
-  count.textContent = `${list.length} remotes`;
-
-  container.innerHTML = "";
-  if (!list.length) {
-    empty.style.display = "block";
-    return;
-  }
-  empty.style.display = "none";
-
-  list.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "item";
-    el.innerHTML = `
-      <div class="avatar">${initials(item.name)}</div>
-      <div class="meta">
-        <div class="name">${escapeHtml(item.name || "Unnamed Remote")}</div>
-        <div class="sub">${escapeHtml(item.last || "No activity yet")}</div>
-      </div>
-      <div class="right">
-        <div class="time">${escapeHtml(item.time || "")}</div>
-        <div class="badges">
-          <span class="badge ${badgeClass(item.state)}">${escapeHtml(item.tag || "Device")}</span>
-        </div>
-      </div>
-    `;
-
-    // Placeholder click: later you can open remote details page or panel
-    el.addEventListener("click", () => {
-      alert(`Remote: ${item.name}\n\n(این فعلاً Placeholder است؛ بعداً می‌تونیم صفحه Details یا کنترل ریموت را طراحی کنیم)`);
-    });
-
-    container.appendChild(el);
-  });
+.orb{
+  width:22px;
+  height:22px;
+  border-radius:10px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(255,255,255,.05) 45%, rgba(90,200,255,.35));
+  box-shadow: 0 0 0 6px rgba(255,255,255,.03);
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+.pill-text{ min-width:0; line-height:1.15; }
+.pill-title{
+  font-weight:800;
+  font-size:13.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.pill-sub{
+  font-size:11px;
+  color: var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-function setupSearch(all) {
-  const input = document.getElementById("searchInput");
-  input.addEventListener("input", () => {
-    const q = input.value.trim().toLowerCase();
-    const filtered = all.filter(d =>
-      (d.name || "").toLowerCase().includes(q) ||
-      (d.last || "").toLowerCase().includes(q) ||
-      (d.tag || "").toLowerCase().includes(q)
-    );
-    render(filtered);
-  });
+.pill-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-function main() {
-  seedIfEmpty();
-  const all = loadDevices();
-
-  render(all);
-  setupSearch(all);
-
-  const searchBtn = document.getElementById("searchBtn");
-  const addBtn = document.getElementById("addBtn");
-  const searchRow = document.getElementById("searchRow");
-  const searchInput = document.getElementById("searchInput");
-
-  searchBtn.addEventListener("click", () => {
-    searchRow.classList.toggle("show");
-    if (searchRow.classList.contains("show")) {
-      searchInput.focus();
-    } else {
-      searchInput.value = "";
-      render(loadDevices());
-    }
-  });
-
-  addBtn.addEventListener("click", () => {
-    window.location.href = "addDevice.html";
-  });
+.status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color: var(--muted);
+  white-space:nowrap;
 }
 
-document.addEventListener("DOMContentLoaded", main);
+.dot{
+  width:9px; height:9px;
+  border-radius:999px;
+  background: var(--bad);
+  box-shadow: 0 0 0 5px rgba(255,107,107,.10);
+}
+.dot.good{
+  background: var(--good);
+  box-shadow: 0 0 0 5px rgba(53,255,176,.10);
+}
+
+/* Icon buttons */
+.icon-btn{
+  width:38px;
+  height:38px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.icon-btn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.085);
+  border-color: rgba(255,255,255,.18);
+}
+.icon-btn:active{ transform: translateY(0px) scale(.98); }
+
+svg{
+  fill:none;
+  stroke: rgba(255,255,255,.88);
+  stroke-width: 1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+/* Search row */
+.searchRow{
+  margin-top:12px;
+  display:none;
+  gap:10px;
+  align-items:center;
+}
+.searchRow.show{ display:flex; }
+
+.input{
+  width:100%;
+  padding:12px 14px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.14);
+  color: var(--text);
+  outline:none;
+}
+.input::placeholder{ color: rgba(255,255,255,.35); }
+
+.clearBtn{
+  width:42px;
+  height:42px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.9);
+  font-size:22px;
+  line-height:1;
+  cursor:pointer;
+}
+
+/* Section */
+.sectionHead{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.sectionTitle{
+  font-size:13px;
+  color: var(--muted);
+}
+.badge{
+  font-size:11px;
+  padding:4px 10px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.75);
+}
+
+/* WhatsApp-like list */
+.list{
+  margin-top:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.045);
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.item:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.07);
+  border-color: rgba(255,255,255,.16);
+}
+
+.avatar{
+  width:44px; height:44px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.30), rgba(255,255,255,.05) 45%, rgba(90,200,255,.28));
+  border:1px solid rgba(255,255,255,.10);
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  color: rgba(255,255,255,.92);
+  flex: 0 0 auto;
+}
+
+.meta{ min-width:0; flex: 1 1 auto; }
+.name{
+  font-size:14px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sub{
+  margin-top:2px;
+  font-size:12px;
+  color: var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.right{
+  flex: 0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+.time{
+  font-size:11px;
+  color: rgba(255,255,255,.55);
+}
+
+.tags{ display:flex; gap:6px; }
+.tag{
+  font-size:10.5px;
+  padding:3px 8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.78);
+}
+.tag.good{ border-color: rgba(53,255,176,.26); background: rgba(53,255,176,.10); }
+.tag.warn{ border-color: rgba(255,211,106,.26); background: rgba(255,211,106,.10); }
+.tag.bad{  border-color: rgba(255,107,107,.26); background: rgba(255,107,107,.10); }
+
+/* Empty + footer */
+.empty{
+  margin-top:12px;
+  padding:16px 14px;
+  border-radius: 18px;
+  border:1px dashed rgba(255,255,255,.14);
+  background: rgba(255,255,255,.03);
+  color: rgba(255,255,255,.62);
+  font-size:12px;
+  line-height:1.6;
+  text-align:center;
+}
+
+.footNote{
+  margin-top:12px;
+  font-size:11px;
+  color: var(--muted2);
+  text-align:center;
+}
