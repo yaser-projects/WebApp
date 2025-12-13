@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>User Interface</title>
+  <link rel="stylesheet" href="css/common-style.css" />
+  <link rel="stylesheet" href="css/userInterface.css" />
+</head>
+<body>
+  <div class="center-wrap">
+    <div class="panel">
+      <div class="panel-inner">
+        <!-- Header pill -->
+        <div class="pill">
+          <div class="pill-left">
+            <div class="orb"></div>
+            <div class="pill-title">
+              <b>User Interface</b>
+              <span>Remotes list • search • add device</span>
+            </div>
+          </div>
+
+          <div class="pill-right">
+            <div class="status">
+              <span class="dot"></span>
+              <span>Ready</span>
+            </div>
+
+            <button class="icon-btn" id="searchBtn" title="Search">
+              <!-- search icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20l-3.2-3.2"></path>
+              </svg>
+            </button>
+
+            <button class="icon-btn" id="addBtn" title="Add Device">
+              <!-- plus icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path d="M12 5v14"></path>
+                <path d="M5 12h14"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search row -->
+        <div class="search-row" id="searchRow">
+          <input class="input" id="searchInput" placeholder="جستجو در ریموت‌ها..." />
+        </div>
+
+        <div class="section-title">
+          <span>Remotes</span>
+          <span class="count-badge" id="countBadge">0 remotes</span>
+        </div>
+
+        <div class="list" id="list"></div>
+
+        <div class="empty" id="emptyState" style="display:none">
+          هنوز هیچ ریموتی اضافه نشده.<br/>
+          از دکمه <b>+</b> بالا برای ساختن یک Device جدید استفاده کن.
+        </div>
+
+        <div class="hr"></div>
+        <div class="small-note">
+          Theme: glass + dark gradient • لیست شبیه واتساپ (v1)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/userInterface.js"></script>
+</body>
+</html>

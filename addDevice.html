@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Add Device</title>
+  <link rel="stylesheet" href="css/common-style.css" />
+  <link rel="stylesheet" href="css/addDevice.css" />
+</head>
+<body>
+  <div class="center-wrap">
+    <div class="panel">
+      <div class="panel-inner">
+
+        <div class="pill">
+          <div class="pill-left">
+            <div class="orb"></div>
+            <div class="pill-title">
+              <b>Add Device</b>
+              <span>Create a new remote (stored locally)</span>
+            </div>
+          </div>
+
+          <div class="pill-right top-actions">
+            <button class="back" id="backBtn" title="Back">
+              <!-- arrow-right (RTL back) -->
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="helper">
+          این صفحه واقعی است: با ذخیره، Device داخل لیست User Interface اضافه می‌شود (v1).  
+        </div>
+
+        <form class="form" id="form">
+          <div>
+            <div class="label">Device Name</div>
+            <input class="input" id="name" placeholder="مثلاً: Remote - Bedroom" />
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="label">Type</div>
+              <select class="select" id="type">
+                <option value="Remote">Remote</option>
+                <option value="Gate">Gate</option>
+                <option value="AC">AC</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div>
+              <div class="label">Status Tag</div>
+              <select class="select" id="tag">
+                <option value="Ready">Ready</option>
+                <option value="New">New</option>
+                <option value="Offline">Offline</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="label">Frequency (optional)</div>
+              <input class="input" id="freq" placeholder="433.92 MHz" />
+            </div>
+            <div>
+              <div class="label">Note (optional)</div>
+              <input class="input" id="note" placeholder="EV1527 / RAW / 24-bit ..." />
+            </div>
+          </div>
+
+          <button class="btn" id="saveBtn" type="submit" disabled>Save Device</button>
+        </form>
+
+        <div class="small-note">
+          بعداً می‌تونیم همین صفحه را به WebSocket/ESP32 وصل کنیم و Pair/Scan واقعی بگذاریم.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="js/addDevice.js"></script>
+</body>
+</html>

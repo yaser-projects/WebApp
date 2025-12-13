@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Remote Scan</title>
+  <link rel="stylesheet" href="css/remuteScan.css" />
+</head>
+
+<body>
+  <main class="app">
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brandMark" aria-hidden="true"></div>
+        <div class="brandText">
+          <h1>Remote Scan</h1>
+          <p>Frequency range • progress • last 5 hits</p>
+        </div>
+      </div>
+
+      <div class="status" aria-live="polite">
+        <span class="statusDot" id="statusDot"></span>
+        <span class="statusText" id="statusText">Disconnected</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="cardBody">
+
+        <div class="sectionHead">
+          <h2>Frequency</h2>
+        </div>
+
+        <div class="sliderWrap" aria-label="Frequency range slider">
+          <div class="edgeLabels">
+            <span>300 MHz</span>
+            <span>928 MHz</span>
+          </div>
+
+          <div class="sliderTrack">
+            <div id="sliderFill" class="sliderFill"></div>
+            <input id="minSlider" class="thumb thumbMin" type="range" min="300" max="928" step="0.01" value="300" />
+            <input id="maxSlider" class="thumb thumbMax" type="range" min="300" max="928" step="0.01" value="350" />
+          </div>
+        </div>
+
+        <div class="controlsRow">
+          <div class="field rangeField">
+            <label for="rangeBox">Range</label>
+            <input id="rangeBox" class="rangeBox" type="text" readonly value="-- MHz — -- MHz" />
+          </div>
+
+          <div class="field">
+            <label for="stepSelect">Step</label>
+            <select id="stepSelect"></select>
+          </div>
+
+          <div class="field">
+            <label for="dwellSelect">Dwell</label>
+            <select id="dwellSelect"></select>
+          </div>
+        </div>
+
+        <div id="errorBox" class="errorBox" role="alert">
+          Invalid range. Start must be lower than End, both inside 300..928 MHz.
+        </div>
+
+        <div class="progressBlock">
+          <div class="progressRingWrap">
+            <div id="ring" class="ring" role="img" aria-label="Scan progress">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle cx="60" cy="60" r="50" class="ringBg"></circle>
+                <circle cx="60" cy="60" r="50" class="ringFg" id="ringFg"></circle>
+              </svg>
+
+              <div class="ringCenter">
+                <div class="ringUnit">MHz</div>
+                <div class="ringFreq"><span id="lastFreq">—</span></div>
+                <div class="ringPct"><span id="pct">0</span>%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="segment" id="segmentText">Segment 1</div>
+
+          <div class="hitsHead">
+            <h3>Hits</h3>
+          </div>
+
+          <div id="hitsList" class="hitsList"></div>
+
+          <div class="actionBar">
+            <button id="searchBtn" class="btn btnPrimary">Search</button>
+          </div>
+
+          <p class="hint">
+            “Found” flashes the ring. Final “hit” items appear in the list (max 5).
+          </p>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/remuteScan.js"></script>
+</body>
+</html>

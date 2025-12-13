@@ -80,6 +80,17 @@ function showStep(stepNum) {
   dots.forEach((dot, idx) => {
     dot.classList.toggle('active', idx + 1 === stepNum);
   });
+
+  // Auto-load data when entering steps
+  if (stepNum === 2 && ws && ws.isConnected) {
+    loadAPSettings();
+  }
+  if (stepNum === 3 && ws && ws.isConnected) {
+    loadStationSettings();
+  }
+  if (stepNum === 5 && ws && ws.isConnected) {
+    loadSummary();
+  }
 }
 
 /**
