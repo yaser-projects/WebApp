@@ -1,23 +1,7 @@
 // ============================================
 // Metal Brain - Shared WebSocket Module
 // ============================================
-// All WebSocket JSON messages MUST live here.
-//
-// Events dispatched on window:
-//   - ws-status              { connected:boolean, url?:string, error?:boolean }
-//   - ws-message             (all JSON messages)
-//
-// Remote Scan events:
-//   - remote-scan:read       { RF_SCAN_* ... }
-//   - remote-scan:ack        { error:false, message:string }
-//   - remote-scan:start      { message:"Band scan requested" }
-//   - remote-scan:progress   { type:"band_scan.progress", ... }
-//   - remote-scan:found      { type:"user.band_scan.found", ... }
-//   - remote-scan:hit        { type:"user.band_scan.hit", ... }
-//   - remote-scan:done       { progress:100 }
-//
-// Device Info (About) events:
-//   - device:info            { info: string[], raw: object }
+
 
 const WS_CONFIG = {
   FALLBACK_HOST: "192.168.1.2",
@@ -117,25 +101,16 @@ class WSConnection {
       // broadcast raw JSON
       this._emit("ws-message", data);
 
-      // Device Info (About)
-      this._handleDeviceInfoInbound(data);
-
-      // Remote Scan protocol
-      this._handleRemoteScanInbound(data);
+      // Internal handlers (each ONLY ONCE)
+      this._handleDeviceInfoInbound(data);   // About
+      this._handleAPClientsInbound(data);    // Status
+      this._handleNetworkSettingsInbound(data); // Network Settings ✅
+      this._handleRemoteScanInbound(data);   // Remote Scan
 
       // user handlers
       this.handlers.onJSON?.(data, this);
-
-            // Device Info (About)
-      this._handleDeviceInfoInbound(data);
-
-      // Status - AP Clients
-      this._handleAPClientsInbound(data);
-
-      // Remote Scan protocol
-      this._handleRemoteScanInbound(data);
-
     };
+
 
     ws.onerror = (error) => {
       console.error("[WS] Error:", error);
@@ -226,7 +201,7 @@ class WSConnection {
       this._emit("device:info", { info, raw: data });
     }
   }
-    // =========================================================
+  // =========================================================
   // Status Page - Active DHCP Clients (MESSAGE LIVES HERE)
   // =========================================================
   apClientsRead() {
@@ -267,6 +242,147 @@ class WSConnection {
       hostName,
       raw: data,
     });
+  }
+
+  // =========================================================
+  // Network Settings - Access Point (ALL MESSAGES LIVE HERE)
+  // =========================================================
+  networkApReadAll() {
+    return this.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: [
+        "AP SSID",
+        "AP Pre-Shared Key",
+        "Ssid Hidden",
+        "AP IPv4",
+        "AP IPv6",
+        "AP Port",
+        "AP HostName",
+        "Wifi Channel",
+        "Max Connection",
+        "AP MAC",
+        "Gateway",
+        "Subnet",
+        "Primary DNS",
+        "Secondary DNS",
+      ],
+    });
+  }
+
+  networkApWrite(fields) {
+    return this.sendJSON({
+      setting: "device",
+      action: "write",
+      fields,
+    });
+  }
+
+  // =========================================================
+  // Network Settings - Station
+  // =========================================================
+  networkStaReadAll() {
+    return this.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: [
+        "Modem SSID",
+        "Modem Pre-Shared Key",
+        "STA HostName",
+        "Modem IP",
+        "Modem MAC",
+        "STA MAC",
+      ],
+    });
+  }
+
+  networkStaWrite(fields) {
+    return this.sendJSON({
+      setting: "device",
+      action: "write",
+      fields,
+    });
+  }
+
+  // =========================================================
+  // Network Settings - Security
+  // =========================================================
+  networkSecurityRead() {
+    return this.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: ["username", "password"],
+    });
+  }
+
+  networkSecurityWrite(fields) {
+    return this.sendJSON({
+      setting: "device",
+      action: "write",
+      fields,
+    });
+  }
+
+  // =========================================================
+  // Commands used in Network Settings
+  // =========================================================
+  pushButtonConfig() {
+    return this.sendJSON({
+      setting: "command",
+      action: "push button",
+      fields: { Config: true },
+    });
+  }
+
+  resetFactoryCommand() {
+    return this.sendJSON({
+      setting: "command",
+      action: "push button",
+      fields: { "Reset factory": true },
+    });
+  }
+
+  // =========================================================
+  // Network Settings inbound router
+  // =========================================================
+  _handleNetworkSettingsInbound(data) {
+    if (!data || typeof data !== "object") return;
+
+    // Read responses
+    const apKeys = [
+      "AP SSID", "AP Pre-Shared Key", "Ssid Hidden", "AP IPv4", "AP IPv6", "AP Port", "AP HostName",
+      "Wifi Channel", "Max Connection", "AP MAC", "Gateway", "Subnet", "Primary DNS", "Secondary DNS"
+    ];
+    const staKeys = ["Modem SSID", "Modem Pre-Shared Key", "STA HostName", "Modem IP", "Modem MAC", "STA MAC"];
+    const secKeys = ["username", "password"];
+
+    const hasAny = (keys) => keys.some(k => k in data);
+
+    if (hasAny(apKeys)) {
+      this._emit("net-ap:read", { raw: data });
+      return;
+    }
+    if (hasAny(staKeys)) {
+      this._emit("net-sta:read", { raw: data });
+      return;
+    }
+    if (hasAny(secKeys)) {
+      this._emit("net-sec:read", { raw: data });
+      return;
+    }
+
+    // Write ACK / Error
+    if (data.error === false && typeof data.message === "string") {
+      if (data.message === "Device settings saved") {
+        this._emit("device:settings:saved", { message: data.message, raw: data });
+      }
+      return;
+    }
+
+    if (data.error === true && typeof data.message === "string") {
+      this._emit("device:settings:error", { message: data.message, raw: data });
+      return;
+    }
   }
 
 

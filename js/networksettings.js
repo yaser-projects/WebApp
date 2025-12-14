@@ -1,741 +1,598 @@
-//=====================================================================================================
-//=====================================================================================================
-const dropdownButtons = document.querySelectorAll(".dropdown-btn"); // گرفتن تمام دکمه‌های آکاردیون
-let lastOpenedSection = "section-ap";                               // چون پیش‌فرض Access Point بازه
-//=====================================================================================================
-// تابع برای بستن تمام آکاردیون‌ها
-function closeAllDropdowns() {
-  document.querySelectorAll(".dropdown-container").forEach(container => {
-    container.classList.remove("active");
-  });
+"use strict";
+
+import { connectWebSocket } from "./JS/ws.js";
+
+/* ---------------------------
+   helpers: format/parse
+----------------------------*/
+function showToast(msg, kind = "") {
+  const el = document.getElementById("toast");
+  el.className = `toast ${kind}`.trim();
+  el.textContent = msg || "";
+  if (msg) setTimeout(() => { el.textContent = ""; el.className = "toast"; }, 1800);
 }
-//=====================================================================================================
-// ✅ تابع اکولنگی بین IPv4 و IPv6
-function setupIPModeSwitch() {
-  const ipv4Radio = document.getElementById("ap-ipmode4");
-  const ipv6Radio = document.getElementById("ap-ipmode6");
-  const ipv4Input = document.getElementById("ap-ipv4");
-  const ipv6Input = document.getElementById("ap-ipv6");
 
-  function toggleIPFields() {
-    if (ipv4Radio.checked) {
-      ipv4Input.disabled = false;
-      ipv6Input.disabled = true;
-      ipv6Input.value = "";
-    } else if (ipv6Radio.checked) {
-      ipv6Input.disabled = false;
-      ipv4Input.disabled = true;
-      ipv4Input.value = "";
-    }
-  }
-
-  // اتصال رویداد تغییر
-  ipv4Radio.addEventListener("change", toggleIPFields);
-  ipv6Radio.addEventListener("change", toggleIPFields);
-
-  // اجرای اولیه
-  toggleIPFields();
+function setWSState(connected) {
+  const s = document.getElementById("wsState");
+  s.textContent = connected ? "Connected" : "Disconnected";
 }
-//=====================================================================================================
-// ✅ تابع تبدیل آرایه عددی به رشته MAC Address هگزادسیمال (برای نمایش)
-function formatMAC(macArray) {
-  if (!Array.isArray(macArray) || macArray.length !== 6) return "";
-  return macArray.map(num => num.toString(16).padStart(2, "0").toUpperCase()).join(":");
-}
-//=====================================================================================================
-// ✅ تابع تبدیل رشته MAC Address به آرایه عددی (برای ذخیره یا ارسال)
-function parseMAC(macString) {
-  if (typeof macString !== "string") return [];
-  const parts = macString.split(":");
-  if (parts.length !== 6) return [];
-  return parts.map(part => parseInt(part, 16));
-}
-//=====================================================================================================
-// ✅ تبدیل رشته IP (مثل "192.168.1.1") به آرایه عددی [192, 168, 1, 1]
-function parseIPv4String(str) {
-  const parts = str.trim().split(".");
-  if (parts.length !== 4) return null;
 
-  const nums = parts.map(p => {
-    const n = parseInt(p);
-    return isNaN(n) || n < 0 || n > 255 ? null : n;
-  });
+function formatMAC(arr) {
+  if (!Array.isArray(arr) || arr.length !== 6) return "";
+  return arr.map(n => Number(n).toString(16).padStart(2, "0").toUpperCase()).join(":");
+}
 
-  return nums.includes(null) ? null : nums;
-};
-//=====================================================================================================
-// ✅ تبدیل آرایه IPv4 مثل [192,168,1,1] به رشته '192.168.1.1'
 function formatIPv4(arr) {
   if (!Array.isArray(arr) || arr.length !== 4) return "";
-  return arr.join(".");
-};
-//=====================================================================================================
-// ✅ تبدیل رشته استاندارد IPv6 به آرایه ۱۶ بایتی مناسب برای ارسال در JSON
-function parseIPv6String(str) {
-  const parts = str.trim().split(":");
+  return arr.map(n => String(Number(n))).join(".");
+}
+
+function parseIPv4(str) {
+  const s = String(str || "").trim();
+  const parts = s.split(".");
+  if (parts.length !== 4) return null;
+  const nums = parts.map(p => {
+    if (!/^\d+$/.test(p)) return null;
+    const n = Number(p);
+    if (!Number.isInteger(n) || n < 0 || n > 255) return null;
+    return n;
+  });
+  return nums.includes(null) ? null : nums;
+}
+
+function formatIPv6(bytes16) {
+  if (!Array.isArray(bytes16) || bytes16.length !== 16) return "";
+  const parts = [];
+  for (let i = 0; i < 16; i += 2) {
+    const val = ((Number(bytes16[i]) & 0xFF) << 8) | (Number(bytes16[i + 1]) & 0xFF);
+    parts.push(val.toString(16).padStart(4, "0"));
+  }
+  return parts.join(":");
+}
+
+function parseIPv6(str) {
+  const s = String(str || "").trim();
+  const parts = s.split(":");
   if (parts.length !== 8) return null;
 
   const bytes = [];
-  for (let part of parts) {
+  for (const part of parts) {
     if (!/^[0-9a-fA-F]{1,4}$/.test(part)) return null;
     const num = parseInt(part, 16);
-    const high = (num >> 8) & 0xFF;
-    const low = num & 0xFF;
-    bytes.push(high, low);
+    bytes.push((num >> 8) & 0xFF, num & 0xFF);
   }
+  return bytes;
+}
 
-  return bytes; // خروجی ۱۶ عدد بین ۰ تا ۲۵۵
-};
-//=====================================================================================================
-// ✅ تبدیل آرایه ۱۶ بایتی IPv6 به رشته استاندارد (برای نمایش در فرم)
-function formatIPv6(arr) {
-  if (!Array.isArray(arr) || arr.length !== 16) return "";
-  const parts = [];
-  for (let i = 0; i < 16; i += 2) {
-    const val = (arr[i] << 8) | arr[i + 1];
-    parts.push(val.toString(16).padStart(4, '0'));
-  }
-  return parts.join(":");
-};
-//=====================================================================================================
-// ✅ دکمه Back → ارسال پیام Config و رفتن به داشبورد
-function setupBackButton() {
-  const backBtn = document.querySelector(".back-icon");
-  if (!backBtn) return;
+function parsePort(str) {
+  const s = String(str || "").trim();
+  if (!/^\d+$/.test(s)) return null;
+  const n = Number(s);
+  if (!Number.isInteger(n) || n < 0 || n > 65535) return null;
+  return n;
+}
 
-  backBtn.addEventListener("click", () => {
-    centralManager.pushButtonConfig(() => {
-      window.location.href = "dashboard.html";
+/* ---------------------------
+   validation UI
+----------------------------*/
+function setErr(fieldId, msg) {
+  const wrap = document.querySelector(`.inputIcon[data-field="${fieldId}"]`);
+  const err = document.getElementById(`${fieldId}-err`);
+  if (wrap) wrap.classList.toggle("error", !!msg);
+  if (err) err.textContent = msg || "";
+}
+
+function clearErr(fieldId) {
+  setErr(fieldId, "");
+}
+
+function isIPv4CharsKey(e) {
+  return /[0-9.]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+}
+function isIPv6CharsKey(e) {
+  return /[0-9a-fA-F:]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+}
+function isDigitsKey(e) {
+  return /[0-9]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+}
+
+/* ---------------------------
+   state + dirty tracking
+----------------------------*/
+let ws = null;
+
+let openId = "acc-ap"; // default open
+let dirtyAP = false;
+let dirtySTA = false;
+let dirtySEC = false;
+
+let lastAP = null;
+let lastSTA = null;
+let lastSEC = null;
+
+function markDirty(section) {
+  if (section === "ap") dirtyAP = true;
+  if (section === "sta") dirtySTA = true;
+  if (section === "sec") dirtySEC = true;
+}
+
+/* ---------------------------
+   accordion
+----------------------------*/
+function setActiveAccordion(id) {
+  const items = document.querySelectorAll(".accItem");
+  items.forEach(x => x.classList.toggle("active", x.id === id));
+  openId = id;
+}
+
+function bindAccordion() {
+  document.querySelectorAll(".accItem .accHead").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const parent = btn.closest(".accItem");
+      if (!parent) return;
+      if (parent.id === openId) return; // always keep one open
+
+      // before switching, try save previous section if needed
+      const ok = await saveCurrentSectionIfNeeded();
+      if (!ok) return;
+
+      setActiveAccordion(parent.id);
+      requestReadForCurrent();
     });
   });
 }
-//=====================================================================================================
-// .................................... ✅ Access Point Part .........................................
-//=====================================================================================================
-// ✅ اعتبارسنجی SSID 
-function setupAPSSIDValidation() {
-  const ssidInput = document.getElementById("ap-ssid");
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  ssidInput.parentElement.insertAdjacentElement("afterend", errorEl);
 
-  ssidInput.addEventListener("input", () => {
-    const value = ssidInput.value.trim();
+/* ---------------------------
+   READ requests
+----------------------------*/
+function requestReadForCurrent() {
+  if (!ws?.isConnected) return;
 
-    if (value.length === 0) {
-      ssidInput.parentElement.classList.add("error");
-      errorEl.textContent = "SSID is required.";
-    } else if (value.length > 32) {
-      ssidInput.parentElement.classList.add("error");
-      errorEl.textContent = "SSID must be 32 characters or fewer.";
-    } else {
-      ssidInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ اعتبارسنجی PreSharedKey
-function setupAPPreSharedKeyValidation() {
-  const keyInput = document.getElementById("ap-preSharedKey");
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  keyInput.parentElement.insertAdjacentElement("afterend", errorEl);
+  if (openId === "acc-ap") ws.networkApReadAll();
+  if (openId === "acc-sta") ws.networkStaReadAll();
+  if (openId === "acc-sec") ws.networkSecurityRead();
+  // reset has no read
+}
 
-  keyInput.addEventListener("input", () => {
-    const value = keyInput.value.trim();
+/* ---------------------------
+   AP validate + build payload
+----------------------------*/
+function apIsIPv4Mode() {
+  return document.getElementById("ap-ipmode4").checked;
+}
 
-    if (value.length === 0) {
-      keyInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password is required.";
-    } else if (value.length < 8 || value.length > 64) {
-      keyInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password must be between 8 and 64 characters.";
-    } else {
-      keyInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ اعتبارسنجی Hostname 
-function setupAPHostnameValidation() {
-  const hostnameInput = document.getElementById("ap-hostname");
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  hostnameInput.parentElement.insertAdjacentElement("afterend", errorEl);
+function validateAP() {
+  let ok = true;
 
-  hostnameInput.addEventListener("input", () => {
-    const value = hostnameInput.value.trim();
+  const ssid = document.getElementById("ap-ssid").value.trim();
+  if (!ssid) { setErr("ap-ssid", "SSID is required."); ok = false; }
+  else if (ssid.length > 32) { setErr("ap-ssid", "SSID must be 32 characters or fewer."); ok = false; }
+  else if (ssid === "Metal Brain") { setErr("ap-ssid", 'SSID cannot be "Metal Brain".'); ok = false; }
+  else clearErr("ap-ssid");
 
-    if (value.length === 0) {
-      hostnameInput.parentElement.classList.add("error");
-      errorEl.textContent = "Host Name is required.";
-    } else if (value.length > 16) {
-      hostnameInput.parentElement.classList.add("error");
-      errorEl.textContent = "Host Name must be 16 characters or fewer.";
-    } else {
-      hostnameInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ تابع عمومی اعتبارسنجی IPv4 برای تمام فیلدهای مشابه (4 بخش بین 0 تا 255)
-function setupIPv4FieldValidation(fieldId, fieldLabel = "IPv4") {
-  const ipInput = document.getElementById(fieldId);
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  ipInput.parentElement.insertAdjacentElement("afterend", errorEl);
+  const key = document.getElementById("ap-preSharedKey").value.trim();
+  if (!key) { setErr("ap-preSharedKey", "Pre-Shared Key is required."); ok = false; }
+  else if (key.length < 8 || key.length > 64) { setErr("ap-preSharedKey", "Password must be 8 to 64 characters."); ok = false; }
+  else clearErr("ap-preSharedKey");
 
-  // جلوگیری از ورود کاراکتر غیر مجاز (فقط عدد و نقطه)
-  ipInput.addEventListener("keydown", (e) => {
-    if (!/[0-9.]/.test(e.key) && !["Backspace", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      e.preventDefault();
-    }
-  });
+  const hostname = document.getElementById("ap-hostname").value.trim();
+  if (!hostname) { setErr("ap-hostname", "Hostname is required."); ok = false; }
+  else if (hostname.length > 16) { setErr("ap-hostname", "Hostname must be 16 characters or fewer."); ok = false; }
+  else clearErr("ap-hostname");
 
-  // اعتبارسنجی فرمت IP
-  ipInput.addEventListener("input", () => {
-    const value = ipInput.value.trim();
-    const parts = value.split(".");
+  const port = parsePort(document.getElementById("ap-port").value);
+  if (port === null) { setErr("ap-port", "Port must be 0 to 65535."); ok = false; }
+  else clearErr("ap-port");
 
-    const valid = parts.length === 4 && parts.every(part => {
-      const num = parseInt(part);
-      return /^[0-9]+$/.test(part) && num >= 0 && num <= 255;
-    });
+  // IP mode validation
+  const ipv4Str = document.getElementById("ap-ipv4").value.trim();
+  const ipv6Str = document.getElementById("ap-ipv6").value.trim();
 
-    if (value === "") {
-      ipInput.parentElement.classList.add("error");
-      errorEl.textContent = `${fieldLabel} is required.`;
-    } else if (!valid) {
-      ipInput.parentElement.classList.add("error");
-      errorEl.textContent = `${fieldLabel} must be 4 numbers between 0 and 255 (e.g., 192.168.1.1)`;
-    } else {
-      ipInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ اعتبارسنجی IPv6 در Access Point (فرمت استاندارد 8 بخش هگزادسیمال)
-function setupAPIPv6Validation() {
-  const ipInput = document.getElementById("ap-ipv6");
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  ipInput.parentElement.insertAdjacentElement("afterend", errorEl);
+  if (apIsIPv4Mode()) {
+    const ipv4 = parseIPv4(ipv4Str);
+    if (!ipv4) { setErr("ap-ipv4", "IPv4 must be 4 numbers 0-255."); ok = false; }
+    else clearErr("ap-ipv4");
+    clearErr("ap-ipv6"); // ignore ipv6 when disabled
+  } else {
+    const ipv6 = parseIPv6(ipv6Str);
+    if (!ipv6) { setErr("ap-ipv6", "IPv6 must be exactly 8 hex segments."); ok = false; }
+    else clearErr("ap-ipv6");
+    clearErr("ap-ipv4"); // ignore ipv4 when disabled
+  }
 
-  // جلوگیری از ورود کاراکتر غیرمجاز
-  ipInput.addEventListener("keydown", (e) => {
-    if (!/[0-9a-fA-F:]/.test(e.key) && !["Backspace", "Tab", "ArrowLeft", "ArrowRight"].includes(e.key)) {
-      e.preventDefault();
-    }
-  });
+  // Always-required IPv4 fields (gateway/subnet/dns)
+  const gw = parseIPv4(document.getElementById("ap-gateway").value);
+  if (!gw) { setErr("ap-gateway", "Gateway must be IPv4 (0-255)."); ok = false; } else clearErr("ap-gateway");
 
-  ipInput.addEventListener("input", () => {
-    const value = ipInput.value.trim();
-    const parts = value.split(":");
+  const sn = parseIPv4(document.getElementById("ap-subnet").value);
+  if (!sn) { setErr("ap-subnet", "Subnet must be IPv4 (0-255)."); ok = false; } else clearErr("ap-subnet");
 
-    let valid = value !== "" &&
-      parts.length === 8 &&
-      parts.every(part => /^[0-9a-fA-F]{1,4}$/.test(part));
+  const d1 = parseIPv4(document.getElementById("ap-dns1").value);
+  if (!d1) { setErr("ap-dns1", "Primary DNS must be IPv4 (0-255)."); ok = false; } else clearErr("ap-dns1");
 
-    if (value === "") {
-      ipInput.parentElement.classList.add("error");
-      errorEl.textContent = "IPv6 is required.";
-    } else if (!valid) {
-      ipInput.parentElement.classList.add("error");
-      errorEl.textContent = "IPv6 must be 8 segments in hexadecimal (e.g., 2001:0db8:0000:0000:0000:0000:0000:0001)";
-    } else {
-      ipInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// // ✅ اعتبارسنجی Port (مقدار باید بین 0 تا 65535 و فقط عدد باشد)
-function setupAPPortValidation() {
-  const portInput = document.getElementById("ap-port");
-  let errorEl = document.createElement("span");
-  errorEl.className = "error-message";
-  errorEl.style.display = "block";
-  errorEl.style.marginBottom = "10px";
-  portInput.parentElement.insertAdjacentElement("afterend", errorEl);
+  const d2 = parseIPv4(document.getElementById("ap-dns2").value);
+  if (!d2) { setErr("ap-dns2", "Secondary DNS must be IPv4 (0-255)."); ok = false; } else clearErr("ap-dns2");
 
-  // جلوگیری از ورود کاراکتر غیر عددی
-  portInput.addEventListener("keydown", (e) => {
-    if (!/[0-9]/.test(e.key) && e.key !== "Backspace" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
-      e.preventDefault();
-    }
-  });
+  return ok;
+}
 
-  portInput.addEventListener("input", () => {
-    const value = portInput.value.trim();
-    const port = parseInt(value);
-
-    if (value === "") {
-      portInput.parentElement.classList.add("error");
-      errorEl.textContent = "Port is required.";
-    } else if (port < 0 || port > 65535) {
-      portInput.parentElement.classList.add("error");
-      errorEl.textContent = "Port must be between 0 and 65535.";
-    } else {
-      portInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ پاک کردن خطاهای فیلدهای Access Point هنگام باز شدن آکاردیون
-function clearAccessPointValidationErrors() {
-  const fields = [
-    { id: "ap-ssid", err: "ap-ssid-error" },
-    { id: "ap-preSharedKey", err: "ap-preSharedKey-error" },
-    { id: "ap-hostname", err: "ap-hostname-error" },
-    { id: "ap-port", err: "ap-port-error" },
-    { id: "ap-ipv4", err: "ap-ipv4-error" },
-    { id: "ap-ipv6", err: "ap-ipv6-error" },
-    { id: "ap-gateway", err: "ap-gateway-error" },
-    { id: "ap-subnet", err: "ap-subnet-error" },
-    { id: "ap-dns1", err: "ap-dns1-error" },
-    { id: "ap-dns2", err: "ap-dns2-error" },
-  ];
-
-  fields.forEach(({ id, err }) => {
-    const input = document.getElementById(id);
-    const errorEl = document.getElementById(err);
-    if (input) input.parentElement.classList.remove("error");
-    if (errorEl) errorEl.textContent = "";
-  });
-};
-//=================================================================================
-// ✅ پیام مربوط به خواندن ارسال و داده‌ها در فیلدهای مربوطه نمایش داده می‌شوند
-function setupAccessPointAccordionListener() {
-  clearAccessPointValidationErrors();
-  centralManager.readApSettings((res) => {
-    if (!res) return;
-
-    if (res["AP SSID"]) document.getElementById("ap-ssid").value = res["AP SSID"];
-    if (res["AP Pre-Shared Key"]) document.getElementById("ap-preSharedKey").value = res["AP Pre-Shared Key"];
-    if (res["Ssid Hidden"] !== undefined) document.getElementById("ap-ssidHidden").checked = !!res["Ssid Hidden"];
-    if (Array.isArray(res["AP IPv4"])) document.getElementById("ap-ipv4").value = formatIPv4(res["AP IPv4"]);
-    if (Array.isArray(res["AP IPv6"])) document.getElementById("ap-ipv6").value = formatIPv6(res["AP IPv6"]);
-    if (res["AP Port"]) document.getElementById("ap-port").value = res["AP Port"];
-    if (res["AP HostName"]) document.getElementById("ap-hostname").value = res["AP HostName"];
-    if (res["Wifi Channel"]) document.getElementById("ap-wifiChannel").value = res["Wifi Channel"];
-    if (res["Max Connection"]) document.getElementById("ap-maxConnection").value = res["Max Connection"];
-    if (Array.isArray(res["AP MAC"])) document.getElementById("ap-macaddress").value = formatMAC(res["AP MAC"]);
-    if (Array.isArray(res["Gateway"])) document.getElementById("ap-gateway").value = formatIPv4(res["Gateway"]);
-    if (Array.isArray(res["Subnet"])) document.getElementById("ap-subnet").value = formatIPv4(res["Subnet"]);
-    if (Array.isArray(res["Primary DNS"])) document.getElementById("ap-dns1").value = formatIPv4(res["Primary DNS"]);
-    if (Array.isArray(res["Secondary DNS"])) document.getElementById("ap-dns2").value = formatIPv4(res["Secondary DNS"]);
-  });
-};
-//=================================================================================
-// ✅ پیام مربوط به نوشتن ارسال و داده‌ها درون فیلدهای مربوطه در حافظه ذخیره می‌شوند 
-function writeAccessPointSettings(callback = () => { }) {
-  const ssidInput = document.getElementById("ap-ssid");
-  const keyInput = document.getElementById("ap-preSharedKey");
-  const hostnameInput = document.getElementById("ap-hostname");
-  const portInput = document.getElementById("ap-port");
-
-  const ssid = ssidInput.value.trim();
-  const key = keyInput.value.trim();
+function buildApWriteFields() {
+  const ssid = document.getElementById("ap-ssid").value.trim();
+  const key = document.getElementById("ap-preSharedKey").value.trim();
   const hidden = document.getElementById("ap-ssidHidden").checked;
-  const hostname = hostnameInput.value.trim();
-  const port = parseInt(portInput.value.trim());
-  const channel = document.getElementById("ap-wifiChannel").value;
+  const hostname = document.getElementById("ap-hostname").value.trim();
+  const port = parsePort(document.getElementById("ap-port").value);
+  const wifiChannel = document.getElementById("ap-wifiChannel").value;
   const maxConn = document.getElementById("ap-maxConnection").value;
 
-  const ipv4 = parseIPv4String(document.getElementById("ap-ipv4").value);
-  const ipv6 = parseIPv6String(document.getElementById("ap-ipv6").value);
-  const gateway = parseIPv4String(document.getElementById("ap-gateway").value);
-  const subnet = parseIPv4String(document.getElementById("ap-subnet").value);
-  const dns1 = parseIPv4String(document.getElementById("ap-dns1").value);
-  const dns2 = parseIPv4String(document.getElementById("ap-dns2").value);
-
-  if (
-    ssidInput.parentElement.classList.contains("error") ||
-    keyInput.parentElement.classList.contains("error") ||
-    hostnameInput.parentElement.classList.contains("error") ||
-    portInput.parentElement.classList.contains("error")
-  ) return;
-
-  let payload = {
+  const fields = {
     "AP SSID": ssid,
     "AP Pre-Shared Key": key,
     "Ssid Hidden": hidden,
     "AP HostName": hostname,
     "AP Port": port,
-    "Wifi Channel": channel,
-    "Max Connection": maxConn
+    "Wifi Channel": wifiChannel,
+    "Max Connection": maxConn,
+    "Gateway": parseIPv4(document.getElementById("ap-gateway").value),
+    "Subnet": parseIPv4(document.getElementById("ap-subnet").value),
+    "Primary DNS": parseIPv4(document.getElementById("ap-dns1").value),
+    "Secondary DNS": parseIPv4(document.getElementById("ap-dns2").value),
   };
 
-  if (ipv4) payload["AP IPv4"] = ipv4;
-  if (ipv6) payload["AP IPv6"] = ipv6;
-  if (gateway) payload["Gateway"] = gateway;
-  if (subnet) payload["Subnet"] = subnet;
-  if (dns1) payload["Primary DNS"] = dns1;
-  if (dns2) payload["Secondary DNS"] = dns2;
+  if (apIsIPv4Mode()) fields["AP IPv4"] = parseIPv4(document.getElementById("ap-ipv4").value);
+  else fields["AP IPv6"] = parseIPv6(document.getElementById("ap-ipv6").value);
 
-  centralManager.writeApSettings(payload, callback);
-};
-//=====================================================================================================
-// ....................................... ✅ Station Part ...........................................
-//=====================================================================================================
-// ✅اعتبارسنجی SSID Modem
-function setupStationSSIDValidation() {
-  const ssidInput = document.getElementById("st-ssid");
-  const errorEl = document.getElementById("st-ssid-error");
-
-  ssidInput.addEventListener("input", () => {
-    const value = ssidInput.value.trim();
-
-    if (value.length === 0) {
-      // خطا اگر فیلد خالی باشه
-      ssidInput.parentElement.classList.add("error");
-      errorEl.textContent = "SSID is required.";
-    } else if (value.length > 32) {
-      // خطا اگر بیشتر از ۳۲ کاراکتر باشد
-      ssidInput.parentElement.classList.add("error");
-      errorEl.textContent = "SSID must be 32 characters or fewer.";
-    } else {
-      // حذف خطا در صورت معتبر بودن
-      ssidInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
+  return fields;
 }
-//=================================================================================
-// ✅اعتبارسنجی PreSharedKey Modem
-function setupStationPreSharedKeyValidation() {
-  const keyInput = document.getElementById("st-key");
-  const errorEl = document.getElementById("st-key-error");
 
-  keyInput.addEventListener("input", () => {
-    const value = keyInput.value.trim();
+/* ---------------------------
+   STA validate + payload
+----------------------------*/
+function validateSTA() {
+  let ok = true;
 
-    if (value.length === 0) {
-      keyInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password is required.";
-    } else if (value.length < 1 || value.length > 64) {
-      keyInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password must be between 1 and 64 characters.";
-    } else {
-      keyInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
+  const ssid = document.getElementById("st-ssid").value.trim();
+  if (!ssid) { setErr("st-ssid", "SSID is required."); ok = false; }
+  else if (ssid.length > 32) { setErr("st-ssid", "SSID must be 32 characters or fewer."); ok = false; }
+  else clearErr("st-ssid");
+
+  const key = document.getElementById("st-key").value.trim();
+  if (key.length > 64) { setErr("st-key", "Key must be 0 to 64 characters."); ok = false; }
+  else clearErr("st-key");
+
+  const hn = document.getElementById("st-hostname").value.trim();
+  if (!hn) { setErr("st-hostname", "Host Name is required."); ok = false; }
+  else if (hn.length > 16) { setErr("st-hostname", "Host Name must be 16 characters or fewer."); ok = false; }
+  else clearErr("st-hostname");
+
+  return ok;
 }
-//=================================================================================
-// ✅ اعتبارسنجی Hostname Modem
-function setupStationHostnameValidation() {
-  const hostnameInput = document.getElementById("st-hostname");
-  const errorEl = document.getElementById("st-hostname-error");
 
-  hostnameInput.addEventListener("input", () => {
-    const value = hostnameInput.value.trim();
+function buildStaWriteFields() {
+  return {
+    "Modem SSID": document.getElementById("st-ssid").value.trim(),
+    "Modem Pre-Shared Key": document.getElementById("st-key").value.trim(),
+    "STA HostName": document.getElementById("st-hostname").value.trim(),
+  };
+}
 
-    if (value.length === 0) {
-      hostnameInput.parentElement.classList.add("error");
-      errorEl.textContent = "Host Name is required.";
-    } else if (value.length > 16) {
-      hostnameInput.parentElement.classList.add("error");
-      errorEl.textContent = "Host Name must be 16 characters or fewer.";
-    } else {
-      hostnameInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ پاک کردن خطاهای فیلدهای بخش Station (SSID، Key، Hostname)
-function clearStationValidationErrors() {
-  const ssidInput = document.getElementById("st-ssid");
-  const keyInput = document.getElementById("st-key");
-  const hostInput = document.getElementById("st-hostname");
+/* ---------------------------
+   SEC validate + payload
+----------------------------*/
+function validateSEC() {
+  let ok = true;
 
-  const ssidError = document.getElementById("st-ssid-error");
-  const keyError = document.getElementById("st-key-error");
-  const hostError = document.getElementById("st-hostname-error");
+  const u = document.getElementById("sec-username").value.trim();
+  if (!u) { setErr("sec-username", "Username is required."); ok = false; }
+  else if (u.length > 16) { setErr("sec-username", "Username must be 16 characters or fewer."); ok = false; }
+  else clearErr("sec-username");
 
-  ssidInput.parentElement.classList.remove("error");
-  keyInput.parentElement.classList.remove("error");
-  hostInput.parentElement.classList.remove("error");
+  const p = document.getElementById("sec-password").value.trim();
+  if (!p) { setErr("sec-password", "Password is required."); ok = false; }
+  else if (p.length > 16) { setErr("sec-password", "Password must be 16 characters or fewer."); ok = false; }
+  else clearErr("sec-password");
 
-  ssidError.textContent = "";
-  keyError.textContent = "";
-  hostError.textContent = "";
-};
-//=================================================================================
-// ✅ پیام مربوط به خواندن ارسال و داده‌ها در فیلدهای مربوطه نمایش داده می‌شوند
-function setupStationAccordionListener() {
-  clearStationValidationErrors();
-  centralManager.readStationSettings((res) => {
-    if (!res) return;
+  return ok;
+}
 
-    if (res["Modem SSID"]) document.getElementById("st-ssid").value = res["Modem SSID"];
-    if (res["Modem Pre-Shared Key"]) document.getElementById("st-key").value = res["Modem Pre-Shared Key"];
-    if (res["STA HostName"]) document.getElementById("st-hostname").value = res["STA HostName"];
-    if (Array.isArray(res["Modem IP"])) {
-      document.getElementById("st-ip").value = res["Modem IP"].join(".");
-    }
-    if (Array.isArray(res["STA MAC"])) {
-      document.getElementById("st-macaddress").value = formatMAC(res["STA MAC"]);
-    }
-    if (Array.isArray(res["Modem MAC"])) {
-      document.getElementById("st-modemmac").value = formatMAC(res["Modem MAC"]);
-    }
-  });
-};
-//=================================================================================
-// ✅ پیام مربوط به نوشتن ارسال و داده‌ها درون فیلدهای مربوطه در حافظه ذخیره می‌شوند 
-function writeStationSettings(callback = () => { }) {
-  const ssidInput = document.getElementById("st-ssid");
-  const keyInput = document.getElementById("st-key");
-  const hostnameInput = document.getElementById("st-hostname");
+function buildSecWriteFields() {
+  return {
+    username: document.getElementById("sec-username").value.trim(),
+    password: document.getElementById("sec-password").value.trim(),
+  };
+}
 
-  const ssid = ssidInput.value.trim();
-  const key = keyInput.value.trim();
-  const hostname = hostnameInput.value.trim();
+/* ---------------------------
+   save current section (on switch/back)
+----------------------------*/
+async function saveCurrentSectionIfNeeded() {
+  if (!ws?.isConnected) return true;
 
-  if (
-    ssidInput.parentElement.classList.contains("error") ||
-    keyInput.parentElement.classList.contains("error") ||
-    hostnameInput.parentElement.classList.contains("error")
-  ) return;
+  if (openId === "acc-ap" && dirtyAP) {
+    if (!validateAP()) { showToast("Fix Access Point errors first.", "bad"); return false; }
+    ws.networkApWrite(buildApWriteFields());
+    dirtyAP = false;
+    showToast("AP settings sent.", "ok");
+  }
 
-  centralManager.writeStationSettings({
-    "Modem SSID": ssid,
-    "Modem Pre-Shared Key": key,
-    "STA HostName": hostname
-  }, callback);
-};
-//=====================================================================================================
-// ....................................... ✅ Security Part ..........................................
-//=====================================================================================================
-// ✅ اعتبارسنجی Username
-function setupSecurityUsernameValidation() {
-  const userInput = document.getElementById("sec-username");
-  const errorEl = document.getElementById("sec-username-error");
+  if (openId === "acc-sta" && dirtySTA) {
+    if (!validateSTA()) { showToast("Fix Station errors first.", "bad"); return false; }
+    ws.networkStaWrite(buildStaWriteFields());
+    dirtySTA = false;
+    showToast("Station settings sent.", "ok");
+  }
 
-  userInput.addEventListener("input", () => {
-    const value = userInput.value.trim();
+  if (openId === "acc-sec" && dirtySEC) {
+    if (!validateSEC()) { showToast("Fix Security errors first.", "bad"); return false; }
+    ws.networkSecurityWrite(buildSecWriteFields());
+    dirtySEC = false;
+    showToast("Security settings sent.", "ok");
+  }
 
-    if (value.length === 0) {
-      userInput.parentElement.classList.add("error");
-      errorEl.textContent = "Username is required.";
-    } else if (value.length > 16) {
-      userInput.parentElement.classList.add("error");
-      errorEl.textContent = "Username must be 16 characters or fewer.";
-    } else {
-      userInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ اعتبارسنجی Password
-function setupSecurityPasswordValidation() {
-  const passInput = document.getElementById("sec-password");
-  const errorEl = document.getElementById("sec-password-error");
+  return true;
+}
 
-  passInput.addEventListener("input", () => {
-    const value = passInput.value.trim();
+/* ---------------------------
+   reset factory countdown
+   - 7 -> 0
+   - send Reset at 5
+   - redirect to index.html at 0
+----------------------------*/
+function setupReset() {
+  const btn = document.getElementById("resetCircle");
+  const ring = document.querySelector(".ringBar");
+  const main = document.getElementById("resetMain");
+  const sub = document.getElementById("resetSub");
+  const txt = document.getElementById("resetText");
 
-    if (value.length === 0) {
-      passInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password is required.";
-    } else if (value.length > 16) {
-      passInput.parentElement.classList.add("error");
-      errorEl.textContent = "Password must be 16 characters or fewer.";
-    } else {
-      passInput.parentElement.classList.remove("error");
-      errorEl.textContent = "";
-    }
-  });
-};
-//=================================================================================
-// ✅ خالی کردن پیام‌های خطا (متن‌های قرمز زیر فیلدها)
-function clearSecurityValidationErrors() {
-  const userInput = document.getElementById("sec-username");
-  const passInput = document.getElementById("sec-password");
-  const userError = document.getElementById("sec-username-error");
-  const passError = document.getElementById("sec-password-error");
+  const total = 314;
+  let running = false;
+  let t = null;
+  let n = 7;
+  let sentAt5 = false;
 
-  userInput.parentElement.classList.remove("error");
-  passInput.parentElement.classList.remove("error");
-  userError.textContent = "";
-  passError.textContent = "";
-};
-//=================================================================================
-// ✅ پیام مربوط به خواندن ارسال و داده‌ها در فیلدهای مربوطه نمایش داده می‌شوند
-function setupSecurityAccordionListener() {
-  clearSecurityValidationErrors();
-  centralManager.readSecuritySettings((res) => {
-    if (!res) return;
+  function paint() {
+    const progress = n / 7;
+    ring.style.strokeDashoffset = String(total * (1 - progress));
+  }
 
-    if (res["username"]) document.getElementById("sec-username").value = res["username"];
-    if (res["password"]) document.getElementById("sec-password").value = res["password"];
-  });
-};
-//=================================================================================
-// ✅ پیام مربوط به نوشتن ارسال و داده‌ها درون فیلدهای مربوطه در حافظه ذخیره می‌شوند 
-function writeSecuritySettings(callback = () => { }) {
-  const userInput = document.getElementById("sec-username");
-  const passInput = document.getElementById("sec-password");
+  function resetUI() {
+    ring.style.strokeDashoffset = "0";
+    main.textContent = "Start";
+    sub.textContent = "Press to factory reset";
+    txt.textContent = "Press to factory reset";
+    running = false;
+    sentAt5 = false;
+    n = 7;
+  }
 
-  const user = userInput.value.trim();
-  const pass = passInput.value.trim();
+  resetUI();
 
-  if (userInput.parentElement.classList.contains("error") || passInput.parentElement.classList.contains("error")) return;
+  btn.addEventListener("click", () => {
+    if (running) return;
+    if (!ws?.isConnected) { showToast("WebSocket disconnected.", "bad"); return; }
 
-  centralManager.writeSecuritySettings({ username: user, password: pass }, callback);
-};
-//=====================================================================================================
-// ..................................... ✅ Reset Factory Part ........................................
-//=====================================================================================================
-// ✅ تابع مدیریت دکمه ریست فکتوری و ارسال پیام‌ها
-function setupResetFactoryButton() {
-  const resetCircle = document.getElementById("reset-circle");
-  const resetNumber = document.getElementById("reset-number");
-  const resetBar = document.querySelector(".reset-bar");
+    running = true;
+    n = 7;
+    sentAt5 = false;
+    main.textContent = String(n);
+    sub.textContent = "Reset countdown";
+    txt.textContent = "Factory reset command";
+    paint();
 
-  let countdown = 7;
-  let interval = null;
-  const totalLength = 314; // محیط دایره = 2πr ≈ 2 * 3.14 * 50
+    t = setInterval(() => {
+      n -= 1;
+      main.textContent = String(n);
+      paint();
 
-  if (!resetCircle || !resetNumber || !resetBar) return;
+      // send at 5
+      if (!sentAt5 && n === 5) {
+        sentAt5 = true;
+        ws.resetFactoryCommand();
+        showToast("Reset factory sent.", "ok");
+      }
 
-  resetCircle.addEventListener("click", () => {
-    if (interval) return; // جلوگیری از چند بار کلیک
+      if (n <= 0) {
+        clearInterval(t);
+        t = null;
 
-    countdown = 7;
-    resetNumber.textContent = countdown;
-    resetBar.style.strokeDashoffset = "0";
-
-    interval = setInterval(() => {
-      countdown--;
-      resetNumber.textContent = countdown;
-
-      const progress = countdown / 7; // درصد باقی‌مانده
-      resetBar.style.strokeDashoffset = totalLength * (1 - progress);
-
-      if (countdown <= 0) {
-        clearInterval(interval);
-        interval = null;
-
-        // 1️⃣ ارسال پیام Reset Factory
-        centralManager.sendRaw({
-          setting: "command",
-          action: "push button",
-          fields: { "Reset factory": true }
-        });
-
-        // 2️⃣ ارسال پیام Config
-        centralManager.sendRaw({
-          setting: "command",
-          action: "push button",
-          fields: { "Config": true }
-        });
-
-        // 3️⃣ رفتن به صفحه لاگین
+        // after countdown finished -> go login
         setTimeout(() => {
           window.location.href = "index.html";
-        }, 3000);
+        }, 600);
+
+        resetUI();
       }
     }, 1000);
   });
-};
-//=====================================================================================================
-// ............................... 🚀 اجرای توابع هنگام لود صفحه ...................................
-//=====================================================================================================
-window.addEventListener("DOMContentLoaded", () => {
-  centralManager.initWebSocket({
-    onOpen: () => {
-      setupAccessPointAccordionListener();
-    },
-    onError: () => { },
-    onClose: () => { }
+}
+
+/* ---------------------------
+   input bindings (live validation + dirty)
+----------------------------*/
+function bindInputs() {
+  // AP dirty
+  ["ap-ssid","ap-preSharedKey","ap-hostname","ap-ipv4","ap-ipv6","ap-port","ap-gateway","ap-subnet","ap-dns1","ap-dns2","ap-wifiChannel","ap-maxConnection"]
+    .forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("ap")));
+  document.getElementById("ap-ssidHidden").addEventListener("change", () => markDirty("ap"));
+  document.getElementById("ap-wifiChannel").addEventListener("change", () => markDirty("ap"));
+  document.getElementById("ap-maxConnection").addEventListener("change", () => markDirty("ap"));
+
+  // Station dirty
+  ["st-ssid","st-key","st-hostname"].forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("sta")));
+
+  // Security dirty
+  ["sec-username","sec-password"].forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("sec")));
+
+  // key filters
+  ["ap-ipv4","ap-gateway","ap-subnet","ap-dns1","ap-dns2"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", (e) => { if (!isIPv4CharsKey(e)) e.preventDefault(); });
+  });
+  document.getElementById("ap-ipv6").addEventListener("keydown", (e) => { if (!isIPv6CharsKey(e)) e.preventDefault(); });
+  document.getElementById("ap-port").addEventListener("keydown", (e) => { if (!isDigitsKey(e)) e.preventDefault(); });
+
+  // live validation
+  document.getElementById("ap-ssid").addEventListener("input", validateAP);
+  document.getElementById("ap-preSharedKey").addEventListener("input", validateAP);
+  document.getElementById("ap-hostname").addEventListener("input", validateAP);
+  document.getElementById("ap-ipv4").addEventListener("input", validateAP);
+  document.getElementById("ap-ipv6").addEventListener("input", validateAP);
+  document.getElementById("ap-port").addEventListener("input", validateAP);
+  ["ap-gateway","ap-subnet","ap-dns1","ap-dns2"].forEach(id => document.getElementById(id).addEventListener("input", validateAP));
+
+  document.getElementById("st-ssid").addEventListener("input", validateSTA);
+  document.getElementById("st-key").addEventListener("input", validateSTA);
+  document.getElementById("st-hostname").addEventListener("input", validateSTA);
+
+  document.getElementById("sec-username").addEventListener("input", validateSEC);
+  document.getElementById("sec-password").addEventListener("input", validateSEC);
+
+  // IP mode switch
+  const r4 = document.getElementById("ap-ipmode4");
+  const r6 = document.getElementById("ap-ipmode6");
+  const v4 = document.getElementById("ap-ipv4");
+  const v6 = document.getElementById("ap-ipv6");
+
+  function toggleIP() {
+    if (r4.checked) {
+      v4.disabled = false;
+      v6.disabled = true;
+      v6.value = "";
+      clearErr("ap-ipv6");
+    } else {
+      v6.disabled = false;
+      v4.disabled = true;
+      v4.value = "";
+      clearErr("ap-ipv4");
+    }
+    markDirty("ap");
+    validateAP();
+  }
+  r4.addEventListener("change", toggleIP);
+  r6.addEventListener("change", toggleIP);
+  toggleIP();
+}
+
+/* ---------------------------
+   fill UI from WS events
+----------------------------*/
+function bindWSEvents() {
+  window.addEventListener("ws-status", (e) => {
+    setWSState(!!e.detail?.connected);
   });
 
-  // ✅ اجرای تمام توابع مربوط به فرم و اعتبارسنجی
-  setupAPSSIDValidation();
-  setupAPPreSharedKeyValidation();
-  setupAPHostnameValidation();
-  setupIPModeSwitch();
-  setupIPv4FieldValidation("ap-ipv4", "IPv4");
-  setupAPIPv6Validation();
-  setupAPPortValidation();
-  setupIPv4FieldValidation("ap-gateway", "Gateway");
-  setupIPv4FieldValidation("ap-subnet", "Subnet");
-  setupIPv4FieldValidation("ap-dns1", "Primary DNS");
-  setupIPv4FieldValidation("ap-dns2", "Secondary DNS");
-  setupStationSSIDValidation();
-  setupStationPreSharedKeyValidation();
-  setupStationHostnameValidation();
-  setupSecurityUsernameValidation();
-  setupSecurityPasswordValidation();
+  window.addEventListener("net-ap:read", (e) => {
+    const d = e.detail?.raw || {};
+    lastAP = d;
 
-  setupBackButton();
-  enableSwipeBack("dashboard.html");
-  setupResetFactoryButton();
-});
-//=====================================================================================================
-// ابتدا write آکاردیون قبلی
-function handlePreviousSectionWrite() {
-  if (lastOpenedSection === "section-ap") {
-    writeAccessPointSettings();
-  } else if (lastOpenedSection === "section-station") {
-    writeStationSettings();
-  } else if (lastOpenedSection === "section-security") {
-    writeSecuritySettings();
-  }
-};
-//=====================================================================================================
-// ✅ زمانی که روی هر آکاردیون کلیک می‌شود، ابتدا همه آکاردیون‌ها بسته می‌شوند
-// سپس فقط آکاردیون انتخاب‌شده باز شده و پیام خواندن مناسب برای آن بخش ارسال می‌گردد
-//=====================================================================================================
-dropdownButtons.forEach(button => {
-  button.addEventListener("click", () => {
-    const parentContainer = button.parentElement;
-    const isActive = parentContainer.classList.contains("active");
-    const openCount = document.querySelectorAll(".dropdown-container.active").length;
+    if (typeof d["AP SSID"] === "string") document.getElementById("ap-ssid").value = d["AP SSID"];
+    if (typeof d["AP Pre-Shared Key"] === "string") document.getElementById("ap-preSharedKey").value = d["AP Pre-Shared Key"];
 
-    if (isActive && openCount === 1) return;
+    if (d["Ssid Hidden"] !== undefined) document.getElementById("ap-ssidHidden").checked = !!d["Ssid Hidden"];
 
-    // 1️⃣ قبل از تغییر: ذخیره تنظیمات آکاردیون قبلی
-    handlePreviousSectionWrite();
+    if (typeof d["AP HostName"] === "string") document.getElementById("ap-hostname").value = d["AP HostName"];
+    if (typeof d["AP Port"] === "number") document.getElementById("ap-port").value = String(d["AP Port"]);
 
-    // 2️⃣ بستن همه آکاردیون‌ها
-    document.querySelectorAll(".dropdown-container.active").forEach(el => el.classList.remove("active"));
-
-    // 3️⃣ باز کردن آکاردیون جدید
-    parentContainer.classList.add("active");
-
-    // 4️⃣ ارسال پیام read برای آکاردیون جدید
-    if (parentContainer.id === "section-ap") {
-      setupAccessPointAccordionListener();
-    } else if (parentContainer.id === "section-station") {
-      setupStationAccordionListener();
-    } else if (parentContainer.id === "section-security") {
-      setupSecurityAccordionListener();
+    // channel: allow Auto
+    if (d["Wifi Channel"] !== undefined) {
+      const v = String(d["Wifi Channel"]);
+      document.getElementById("ap-wifiChannel").value = (v === "0" || v.toLowerCase() === "auto") ? "Auto" : v;
     }
 
-    // 5️⃣ در انتها به‌روزرسانی آکاردیون فعال
-    lastOpenedSection = parentContainer.id;
+    if (d["Max Connection"] !== undefined) document.getElementById("ap-maxConnection").value = String(d["Max Connection"]);
+
+    if (Array.isArray(d["AP MAC"])) document.getElementById("ap-macaddress").value = formatMAC(d["AP MAC"]);
+
+    // IPs
+    if (Array.isArray(d["AP IPv4"])) {
+      document.getElementById("ap-ipmode4").checked = true;
+      document.getElementById("ap-ipv4").value = formatIPv4(d["AP IPv4"]);
+    }
+    if (Array.isArray(d["AP IPv6"])) {
+      document.getElementById("ap-ipmode6").checked = true;
+      document.getElementById("ap-ipv6").value = formatIPv6(d["AP IPv6"]);
+    }
+    // network
+    if (Array.isArray(d["Gateway"])) document.getElementById("ap-gateway").value = formatIPv4(d["Gateway"]);
+    if (Array.isArray(d["Subnet"])) document.getElementById("ap-subnet").value = formatIPv4(d["Subnet"]);
+    if (Array.isArray(d["Primary DNS"])) document.getElementById("ap-dns1").value = formatIPv4(d["Primary DNS"]);
+    if (Array.isArray(d["Secondary DNS"])) document.getElementById("ap-dns2").value = formatIPv4(d["Secondary DNS"]);
+
+    dirtyAP = false;
+    validateAP();
+  });
+
+  window.addEventListener("net-sta:read", (e) => {
+    const d = e.detail?.raw || {};
+    lastSTA = d;
+
+    if (typeof d["Modem SSID"] === "string") document.getElementById("st-ssid").value = d["Modem SSID"];
+    if (typeof d["Modem Pre-Shared Key"] === "string") document.getElementById("st-key").value = d["Modem Pre-Shared Key"];
+    if (typeof d["STA HostName"] === "string") document.getElementById("st-hostname").value = d["STA HostName"];
+
+    if (Array.isArray(d["Modem IP"])) document.getElementById("st-ip").value = formatIPv4(d["Modem IP"]);
+    if (Array.isArray(d["STA MAC"])) document.getElementById("st-macaddress").value = formatMAC(d["STA MAC"]);
+    if (Array.isArray(d["Modem MAC"])) document.getElementById("st-modemmac").value = formatMAC(d["Modem MAC"]);
+
+    dirtySTA = false;
+    validateSTA();
+  });
+
+  window.addEventListener("net-sec:read", (e) => {
+    const d = e.detail?.raw || {};
+    lastSEC = d;
+
+    if (typeof d["username"] === "string") document.getElementById("sec-username").value = d["username"];
+    if (typeof d["password"] === "string") document.getElementById("sec-password").value = d["password"];
+
+    dirtySEC = false;
+    validateSEC();
+  });
+
+  window.addEventListener("device:settings:saved", () => {
+    showToast("Device settings saved.", "ok");
+  });
+
+  window.addEventListener("device:settings:error", (e) => {
+    const msg = e.detail?.message || "Error";
+    showToast(msg, "bad");
+  });
+}
+
+/* ---------------------------
+   back button rule:
+   1) write active section (if dirty + valid)
+   2) then send Config command
+   3) then go dashboard
+----------------------------*/
+function setupBack() {
+  document.getElementById("btnBack").addEventListener("click", async () => {
+    const ok = await saveCurrentSectionIfNeeded();
+    if (!ok) return;
+
+    if (ws?.isConnected) ws.pushButtonConfig();
+    window.location.href = "dashboard.html";
+  });
+}
+
+/* ---------------------------
+   init
+----------------------------*/
+window.addEventListener("DOMContentLoaded", () => {
+  // default open AP
+  setActiveAccordion("acc-ap");
+  bindAccordion();
+  bindInputs();
+  bindWSEvents();
+  setupReset();
+  setupBack();
+
+  ws = connectWebSocket({
+    onOpen: () => {
+      setWSState(true);
+      requestReadForCurrent(); // Access Point read on first load
+    },
+    onClose: () => setWSState(false),
+    onError: () => setWSState(false),
   });
 });
-//=====================================================================================================
-//=====================================================================================================
-//=====================================================================================================

@@ -1,327 +1,351 @@
-/* ✅ کنترل عرض و فاصله داخلی فرم در دسکتاپ */
-.network-wrapper {
-  max-width: 520px;
-  width: 95%;
-  padding: 20px;
-  box-sizing: border-box;
+:root{
+  --bgA: rgba(255,255,255,.075);
+  --bgB: rgba(255,255,255,.040);
+  --border: rgba(255,255,255,.12);
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.68);
+  --accent: #19f3ff;
+
+  --danger: #ff6b6b;
+  --shadow: 0 18px 60px rgba(0,0,0,.45);
+  --r: 22px;
 }
 
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{ margin:0; color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; overflow-x:hidden; }
 
-/* ✅ جلوگیری کامل از اسکرول افقی در همه‌جا */
-body,
-html,
-.dropdown-container,
-fieldset {
-  max-width: 100%;
-  overflow-x: hidden !important;
-  box-sizing: border-box;
+.page{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding: 18px 14px 28px;
 }
 
-
-/* 🔻 آکاردیون‌ها */
-.dropdown-container {
-  width: 100%;
-  height: auto;
-  max-width: 570px;
-  background: rgba(0, 255, 255, 0.10);
-  border-radius: 9px;
-  margin-bottom: 10px;
-  box-shadow: 0 0 10px #0ff2;
-  transition: box-shadow 0.17s, background 0.15s;
-  overflow: hidden;
-  border: 1.5px solid transparent;
-  position: relative;
+.topBar{
+  width:min(560px, 96vw);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 12px;
 }
 
-.dropdown-container.active {
-  background: rgba(0, 255, 255, 0.18);
-  border-color: #0ff;
-  box-shadow: 0 0 22px #00eaff80;
-  z-index: 2;
+.backBtn{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius: 14px;
+  border:1px solid rgba(25,243,255,.35);
+  background: rgba(0,0,0,.10);
+  color: var(--accent);
+  font-weight:900;
+  cursor:pointer;
+  transition: transform .12s ease, filter .12s ease, background .12s ease;
+}
+.backBtn:hover{ filter:brightness(1.08); transform: translateY(-1px); background: rgba(25,243,255,.06); }
+.backBtn:active{ transform: translateY(0px) scale(.99); }
+
+.topTitle{ text-align:right; }
+.t1{ font-weight:1000; letter-spacing:.5px; }
+.t2{ font-size:12px; color: var(--muted); margin-top:2px; }
+
+.card{
+  width:min(560px, 96vw);
+  border-radius: var(--r);
+  border:1px solid var(--border);
+  background: linear-gradient(180deg, var(--bgA), var(--bgB));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 12px;
 }
 
-.dropdown-container:not(.active) {
-  height: auto;
-  padding-bottom: 0 !important;
-  box-shadow: none;
+/* Accordion */
+.accordion{ display:flex; flex-direction:column; gap:10px; }
+
+.accItem{
+  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.12);
+  overflow:hidden;
 }
 
-.dropdown-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  color: #0ff;
-  font-size: 1.13rem;
-  font-weight: 700;
-  text-align: left;
-  padding: 26px 20px 24px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  cursor: pointer;
-  transition: color 0.14s;
+.accItem.active{
+  border-color: rgba(25,243,255,.55);
+  box-shadow: 0 0 22px rgba(0,234,255,.20);
+  background: rgba(0,0,0,.18);
 }
 
-.dropdown-btn i {
-  font-size: 1.3rem;
-  margin-right: 4px;
+.accHead{
+  width:100%;
+  border:none;
+  background:transparent;
+  color: var(--accent);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding: 16px 14px;
+  font-size: 18px;
+  font-weight: 1000;
+  text-align:left;
 }
 
-
-/* 🎯 محتوای آکاردیون */
-.dropdown-container:not(.active) .dropdown-content {
-  display: none;
+.accIcon{
+  width:34px; height:34px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  display:grid;
+  place-items:center;
+  color: var(--accent);
 }
 
-.dropdown-content {
-  animation: fadeIn 0.2s;
-  padding: 10px 7px 7px 7px;
+.accBody{ display:none; padding: 10px 10px 12px; }
+.accItem.active .accBody{ display:block; animation: accIn .18s ease; }
+
+@keyframes accIn{
+  from{ opacity:0; transform: translateY(10px); }
+  to{ opacity:1; transform: translateY(0); }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Fieldsets */
+.fs{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 10px 0 0;
+  background: rgba(255,255,255,.04);
 }
-
-
-/* 📑 ساختار ورودی‌ها */
-.input-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 7px;
-  padding: 0 12px;
-  margin-bottom: 6px;
-  border: 1.1px solid #0ff2;
-  transition: border 0.15s, background 0.13s;
-}
-
-.input-icon:focus-within {
-  border-color: #0ff;
-  background: rgba(0, 255, 255, 0.06);
-}
-
-.input-icon i {
-  color: #0ff;
-  font-size: 1.15rem;
-}
-
-.input-icon input,
-.input-icon select {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #0ff;
-  font-size: 1.04rem;
-  flex: 1 1 0;
-  padding: 11px 0;
-  background-color: transparent !important;
-}
-
-.input-icon input:focus,
-.input-icon select:focus {
-  color: #fff;
-}
-
-.input-icon select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  padding-right: 10px;
-  cursor: pointer;
-}
-
-
-/* ✅ چک‌باکس‌ها */
-.checkbox-icon {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 7px;
-  padding: 11px 12px;
-  margin-bottom: 6px;
-  border: 1.1px solid #0ff2;
-  transition: border 0.15s, background 0.13s;
-  cursor: pointer;
-  color: #0ff;
-  font-size: 1.04rem;
-  font-weight: 500;
-  flex-direction: row;
-  justify-content: flex-start;
-}
-
-.checkbox-icon:hover {
-  background: rgba(0, 255, 255, 0.06);
-  border-color: #0ff;
-}
-
-.checkbox-icon input[type="checkbox"] {
-  margin: 0;
-  accent-color: #0ff;
-  transform: scale(1.1);
-  cursor: pointer;
-}
-
-.checkbox-icon i {
-  font-size: 1.1rem;
-  color: #0ff;
-}
-
-.checkbox-icon span {
-  user-select: none;
-}
-
-
-/* ❌ وضعیت خطا */
-.input-icon.error {
-  border: 2px solid #dc2626 !important;
-  box-shadow: 0 0 9px #dc262699;
-  background: rgba(255, 0, 0, 0.10);
-}
-
-.error-message {
-  color: #e26a08;
+.fs legend{
+  padding: 0 8px;
+  color: rgba(25,243,255,.92);
+  font-weight: 1000;
   font-size: 12px;
-  margin-top: -2px;
-  margin-bottom: 10px;
-  padding-left: 8px;
-  display: block;
+  letter-spacing:.8px;
+}
+
+.field{ margin-top: 10px; }
+.row2{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 520px){
+  .row2{ grid-template-columns: 1fr; }
+}
+
+label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size: 12px;
+  color: rgba(25,243,255,.92);
+  font-weight: 900;
+}
+
+.hint{
+  font-size:11px;
+  color: rgba(255,255,255,.55);
+  margin-top: 4px;
+}
+.err{
   min-height: 16px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #ffb56a;
 }
 
+.inputIcon{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.14);
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease;
+  margin-top: 6px;
+}
+.inputIcon i{ color: var(--accent); font-size: 14px; }
 
-/* 📱 ریسپانسیو مطمئن */
-@media (max-width: 700px) {
-  .network-wrapper,
-  .dropdown-container,
-  fieldset {
-    padding-left: 4vw;
-    padding-right: 4vw;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
-  }
+.inputIcon input,
+.inputIcon select{
+  width:100%;
+  border:none;
+  outline:none;
+  background: transparent;
+  color: rgba(255,255,255,.92);
+  font-weight: 800;
+  font-size: 14px;
+}
+.inputIcon select{ cursor:pointer; }
 
-  .dropdown-btn {
-    font-size: 0.92rem;
-    padding: 24px 16px 22px 16px;
-    gap: 6px;
-  }
-
-  .dropdown-btn i {
-    font-size: 1rem;
-  }
-
-  .input-icon input,
-  .input-icon select {
-    font-size: 0.97rem;
-    padding: 9px 0;
-  }
+.inputIcon:focus-within{
+  border-color: rgba(25,243,255,.55);
+  box-shadow: 0 0 0 5px rgba(25,243,255,.10);
 }
 
-
-/* 🎨 انتخاب‌ها */
-select {
-  background-color: rgba(0, 255, 255, 0.05) !important;
-  color: #0ff;
+.inputIcon.ro{
+  opacity:.9;
 }
 
-option {
-  background-color: #001c1f;
-  color: #0ff;
+.inputIcon.error{
+  border-color: rgba(255,107,107,.85) !important;
+  box-shadow: 0 0 0 5px rgba(255,107,107,.12);
+  background: rgba(255,0,0,.08);
 }
 
+/* Checkbox line */
+.checkLine{
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.14);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  cursor:pointer;
+}
+.checkIcon{ color: var(--accent); width:28px; display:flex; justify-content:center; }
+.checkText{ color: rgba(255,255,255,.86); font-weight: 900; }
+.checkLine input{ accent-color: var(--accent); transform: scale(1.1); }
 
-/* 🧩 Placeholder */
-::-webkit-input-placeholder { color: #72f0ff99; }
-::-moz-placeholder { color: #72f0ff99; opacity: 1; }
-:-ms-input-placeholder { color: #72f0ff99; }
-::-ms-input-placeholder { color: #72f0ff99; }
+/* Radio line */
+.ipMode{
+  display:flex;
+  gap:14px;
+  align-items:center;
+  margin-top: 10px;
+}
+.radioLine{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  color: rgba(255,255,255,.86);
+  font-weight: 900;
+}
+.radioLine input{ accent-color: var(--accent); }
 
-
-/* 🔄 ریست فکتوری */
-.reset-factory-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px 0;
+/* Tooltip (CSS-only) */
+.tip{
+  width:18px; height:18px;
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.14);
+  display:inline-grid;
+  place-items:center;
+  position:relative;
+  opacity:.9;
+}
+.tip::before{
+  content:"i";
+  font-weight:1000;
+  font-size:12px;
+  color: rgba(255,255,255,.80);
+}
+.tip:hover::after{
+  content: attr(data-tip);
+  position:absolute;
+  left: 50%;
+  top: 26px;
+  transform: translateX(-50%);
+  width: 220px;
+  max-width: 72vw;
+  background: rgba(0,0,0,.78);
+  border:1px solid rgba(255,255,255,.16);
+  color: rgba(255,255,255,.92);
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  z-index: 20;
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
 }
 
-.reset-circle {
-  width: 110px;
-  height: 110px;
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.2s ease;
+/* Reset */
+.resetWrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  padding: 10px 0 6px;
+  flex-wrap:wrap;
 }
 
-.reset-circle:hover {
-  transform: scale(1.05);
+.resetCircle{
+  width: 150px;
+  height: 150px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  cursor:pointer;
+  position:relative;
+  padding:0;
+  transition: transform .12s ease, filter .12s ease;
 }
+.resetCircle:hover{ transform: translateY(-1px); filter: brightness(1.06); }
+.resetCircle:active{ transform: translateY(0px) scale(.99); }
 
-.reset-progress {
-  width: 110px;
-  height: 110px;
+.ring{
+  width: 150px; height: 150px;
   transform: rotate(-90deg);
 }
-
-.reset-progress circle {
-  fill: none;
+.ringBg{
+  fill:none;
+  stroke: rgba(25,243,255,.12);
   stroke-width: 10;
-  cx: 55;
-  cy: 55;
-  r: 50;
 }
-
-.reset-bg {
-  stroke: rgba(0, 255, 255, 0.1);
-}
-
-.reset-bar {
-  stroke: #00eaff;
-  stroke-dasharray: 314;
+.ringBar{
+  fill:none;
+  stroke: rgba(25,243,255,.95);
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-dasharray: 314; /* 2πr with r=50 ≈ 314 */
   stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.3s linear;
+  transition: stroke-dashoffset .25s linear;
 }
 
-.reset-number {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 26px;
-  font-weight: bold;
-  color: #0ff;
-  user-select: none;
+.resetCenter{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  text-align:center;
+}
+.resetMain{
+  color: var(--accent);
+  font-weight: 1000;
+  font-size: 18px;
+}
+.resetSub{
+  color: rgba(255,255,255,.70);
+  font-weight: 800;
+  font-size: 12px;
 }
 
-
-/* ✅ جلوگیری کامل از اسکرول افقی */
-* {
-  max-width: 100vw !important;
-  box-sizing: border-box;
+.resetText{
+  min-width: 220px;
+  text-align:center;
+  color: rgba(255,255,255,.80);
+  font-weight: 900;
 }
 
-html,
-body {
-  overflow-x: hidden !important;
+/* Toast */
+.toast{
+  margin-top: 10px;
+  text-align:center;
+  font-size: 12px;
+  color: rgba(255,255,255,.75);
+  min-height: 18px;
 }
-
-fieldset,
-.dropdown-container,
-.input-icon,
-.reset-factory-content {
-  overflow-x: hidden;
-  width: 100%;
-}
+.toast.ok{ color: rgba(53,255,176,.90); }
+.toast.bad{ color: rgba(255,107,107,.92); }

@@ -298,3 +298,63 @@ svg{
   color: var(--muted2);
   text-align:center;
 }
+
+/* Bottom navigation (UI page) */
+.bottomNav{
+  margin-top: 14px;
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:10px;
+  padding:10px;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+}
+
+.navBtn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 10px;
+  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.90);
+  font-weight:900;
+  font-size:12.5px;
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, filter .12s ease;
+  user-select:none;
+}
+
+.navBtn:hover{
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.085);
+  border-color: rgba(255,255,255,.18);
+  filter: brightness(1.05);
+}
+
+.navBtn:active{
+  transform: translateY(0px) scale(.99);
+}
+
+.navIcon{
+  width:30px;
+  height:30px;
+  border-radius: 12px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.10);
+  display:grid;
+  place-items:center;
+}
+
+.navText{
+  white-space:nowrap;
+}
+
+/* small screens: let buttons wrap nicely */
+@media (max-width: 360px){
+  .bottomNav{ grid-template-columns: 1fr; }
+  .navBtn{ justify-content:flex-start; }
+}

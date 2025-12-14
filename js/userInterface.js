@@ -10,6 +10,13 @@ const STORE_KEY = "ui_objects_v1";
 // Change this to your real devices page filename if different:
 const DEVICES_PAGE = "addDevice.html";
 
+// ✅ Bottom navigation routes (change filenames here if yours differ)
+const ROUTES = {
+  about: "about.html",
+  status: "status.html",
+  network: "networksetting.html" // اگر اسم فایل صفحه نتورک فرق دارد همین را عوض کن
+};
+
 function escapeHtml(str) {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -173,6 +180,19 @@ function main() {
 
   document.getElementById("btnDevices").addEventListener("click", () => {
     window.location.href = DEVICES_PAGE;
+  });
+
+  // ✅ Bottom nav buttons
+  document.getElementById("btnNavAbout")?.addEventListener("click", () => {
+    window.location.href = ROUTES.about;
+  });
+
+  document.getElementById("btnNavStatus")?.addEventListener("click", () => {
+    window.location.href = ROUTES.status;
+  });
+
+  document.getElementById("btnNavNetwork")?.addEventListener("click", () => {
+    window.location.href = ROUTES.network;
   });
 }
 
