@@ -1,45 +1,57 @@
 "use strict";
 
 // NOTE: networksettings.js lives in /js and ws.js is also in /js.
-// The old path "./JS/ws.js" breaks on case-sensitive systems and prevents
-// the whole page (accordion/back button) from working.
 import { connectWebSocket } from "./ws.js";
 
 /* ---------------------------
-   helpers: format/parse
+   helpers: toast + ws state
 ----------------------------*/
 function showToast(msg, kind = "") {
   const el = document.getElementById("toast");
+  if (!el) return;
   el.className = `toast ${kind}`.trim();
   el.textContent = msg || "";
-  if (msg) setTimeout(() => { el.textContent = ""; el.className = "toast"; }, 1800);
+  if (msg) {
+    setTimeout(() => {
+      el.textContent = "";
+      el.className = "toast";
+    }, 1800);
+  }
 }
 
 function setWSState(connected) {
   const s = document.getElementById("wsState");
+  if (!s) return;
   s.textContent = connected ? "Connected" : "Disconnected";
 }
 
+/* ---------------------------
+   helpers: format/parse
+----------------------------*/
 function formatMAC(arr) {
   if (!Array.isArray(arr) || arr.length !== 6) return "";
-  return arr.map(n => Number(n).toString(16).padStart(2, "0").toUpperCase()).join(":");
+  return arr
+    .map((n) => Number(n).toString(16).padStart(2, "0").toUpperCase())
+    .join(":");
 }
 
 function formatIPv4(arr) {
   if (!Array.isArray(arr) || arr.length !== 4) return "";
-  return arr.map(n => String(Number(n))).join(".");
+  return arr.map((n) => String(Number(n))).join(".");
 }
 
 function parseIPv4(str) {
   const s = String(str || "").trim();
   const parts = s.split(".");
   if (parts.length !== 4) return null;
-  const nums = parts.map(p => {
+
+  const nums = parts.map((p) => {
     if (!/^\d+$/.test(p)) return null;
     const n = Number(p);
     if (!Number.isInteger(n) || n < 0 || n > 255) return null;
     return n;
   });
+
   return nums.includes(null) ? null : nums;
 }
 
@@ -47,7 +59,8 @@ function formatIPv6(bytes16) {
   if (!Array.isArray(bytes16) || bytes16.length !== 16) return "";
   const parts = [];
   for (let i = 0; i < 16; i += 2) {
-    const val = ((Number(bytes16[i]) & 0xFF) << 8) | (Number(bytes16[i + 1]) & 0xFF);
+    const val =
+      ((Number(bytes16[i]) & 0xff) << 8) | (Number(bytes16[i + 1]) & 0xff);
     parts.push(val.toString(16).padStart(4, "0"));
   }
   return parts.join(":");
@@ -62,7 +75,7 @@ function parseIPv6(str) {
   for (const part of parts) {
     if (!/^[0-9a-fA-F]{1,4}$/.test(part)) return null;
     const num = parseInt(part, 16);
-    bytes.push((num >> 8) & 0xFF, num & 0xFF);
+    bytes.push((num >> 8) & 0xff, num & 0xff);
   }
   return bytes;
 }
@@ -90,13 +103,28 @@ function clearErr(fieldId) {
 }
 
 function isIPv4CharsKey(e) {
-  return /[0-9.]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+  return (
+    /[0-9.]/.test(e.key) ||
+    ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"].includes(
+      e.key
+    )
+  );
 }
 function isIPv6CharsKey(e) {
-  return /[0-9a-fA-F:]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+  return (
+    /[0-9a-fA-F:]/.test(e.key) ||
+    ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"].includes(
+      e.key
+    )
+  );
 }
 function isDigitsKey(e) {
-  return /[0-9]/.test(e.key) || ["Backspace","Tab","ArrowLeft","ArrowRight","Delete","Home","End"].includes(e.key);
+  return (
+    /[0-9]/.test(e.key) ||
+    ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"].includes(
+      e.key
+    )
+  );
 }
 
 /* ---------------------------
@@ -109,37 +137,35 @@ let dirtyAP = false;
 let dirtySTA = false;
 let dirtySEC = false;
 
-let lastAP = null;
-let lastSTA = null;
-let lastSEC = null;
-
-function markDirty(section) {
-  if (section === "ap") dirtyAP = true;
-  if (section === "sta") dirtySTA = true;
-  if (section === "sec") dirtySEC = true;
-}
+// ✅ مهم: این فلگ‌ها باعث می‌شوند در لود اولیه (بدون دست زدن کاربر)
+// آکاردیون قفل نشود و باگ فعلی تکرار نشود.
+let userTouchedAP = false;
+let userTouchedSTA = false;
+let userTouchedSEC = false;
 
 /* ---------------------------
    accordion
 ----------------------------*/
 function setActiveAccordion(id) {
   const items = document.querySelectorAll(".accItem");
-  items.forEach(x => x.classList.toggle("active", x.id === id));
+  items.forEach((x) => x.classList.toggle("active", x.id === id));
   openId = id;
 }
 
 function bindAccordion() {
-  document.querySelectorAll(".accItem .accHead").forEach(btn => {
+  document.querySelectorAll(".accItem .accHead").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const parent = btn.closest(".accItem");
       if (!parent) return;
       if (parent.id === openId) return; // always keep one open
 
-      // before switching, try save previous section if needed
+      // قبل از سوییچ: اگر بخش فعلی تغییر داشته -> WRITE
       const ok = await saveCurrentSectionIfNeeded();
       if (!ok) return;
 
       setActiveAccordion(parent.id);
+
+      // بعد از باز شدن: READ بخش جدید
       requestReadForCurrent();
     });
   });
@@ -161,60 +187,90 @@ function requestReadForCurrent() {
    AP validate + build payload
 ----------------------------*/
 function apIsIPv4Mode() {
-  return document.getElementById("ap-ipmode4").checked;
+  return document.getElementById("ap-ipmode4")?.checked === true;
 }
 
 function validateAP() {
   let ok = true;
 
-  const ssid = document.getElementById("ap-ssid").value.trim();
-  if (!ssid) { setErr("ap-ssid", "SSID is required."); ok = false; }
-  else if (ssid.length > 32) { setErr("ap-ssid", "SSID must be 32 characters or fewer."); ok = false; }
-  else if (ssid === "Metal Brain") { setErr("ap-ssid", 'SSID cannot be "Metal Brain".'); ok = false; }
-  else clearErr("ap-ssid");
+  const ssid = document.getElementById("ap-ssid")?.value.trim() || "";
+  if (!ssid) {
+    setErr("ap-ssid", "SSID is required.");
+    ok = false;
+  } else if (ssid.length > 32) {
+    setErr("ap-ssid", "SSID must be 32 characters or fewer.");
+    ok = false;
+  } else if (ssid === "Metal Brain") {
+    setErr("ap-ssid", 'SSID cannot be "Metal Brain".');
+    ok = false;
+  } else clearErr("ap-ssid");
 
-  const key = document.getElementById("ap-preSharedKey").value.trim();
-  if (!key) { setErr("ap-preSharedKey", "Pre-Shared Key is required."); ok = false; }
-  else if (key.length < 8 || key.length > 64) { setErr("ap-preSharedKey", "Password must be 8 to 64 characters."); ok = false; }
-  else clearErr("ap-preSharedKey");
+  const key = document.getElementById("ap-preSharedKey")?.value.trim() || "";
+  if (!key) {
+    setErr("ap-preSharedKey", "Pre-Shared Key is required.");
+    ok = false;
+  } else if (key.length < 8 || key.length > 64) {
+    setErr("ap-preSharedKey", "Password must be 8 to 64 characters.");
+    ok = false;
+  } else clearErr("ap-preSharedKey");
 
-  const hostname = document.getElementById("ap-hostname").value.trim();
-  if (!hostname) { setErr("ap-hostname", "Hostname is required."); ok = false; }
-  else if (hostname.length > 16) { setErr("ap-hostname", "Hostname must be 16 characters or fewer."); ok = false; }
-  else clearErr("ap-hostname");
+  const hostname = document.getElementById("ap-hostname")?.value.trim() || "";
+  if (!hostname) {
+    setErr("ap-hostname", "Hostname is required.");
+    ok = false;
+  } else if (hostname.length > 16) {
+    setErr("ap-hostname", "Hostname must be 16 characters or fewer.");
+    ok = false;
+  } else clearErr("ap-hostname");
 
-  const port = parsePort(document.getElementById("ap-port").value);
-  if (port === null) { setErr("ap-port", "Port must be 0 to 65535."); ok = false; }
-  else clearErr("ap-port");
+  const port = parsePort(document.getElementById("ap-port")?.value || "");
+  if (port === null) {
+    setErr("ap-port", "Port must be 0 to 65535.");
+    ok = false;
+  } else clearErr("ap-port");
 
-  // IP mode validation
-  const ipv4Str = document.getElementById("ap-ipv4").value.trim();
-  const ipv6Str = document.getElementById("ap-ipv6").value.trim();
+  const ipv4Str = document.getElementById("ap-ipv4")?.value.trim() || "";
+  const ipv6Str = document.getElementById("ap-ipv6")?.value.trim() || "";
 
   if (apIsIPv4Mode()) {
     const ipv4 = parseIPv4(ipv4Str);
-    if (!ipv4) { setErr("ap-ipv4", "IPv4 must be 4 numbers 0-255."); ok = false; }
-    else clearErr("ap-ipv4");
-    clearErr("ap-ipv6"); // ignore ipv6 when disabled
+    if (!ipv4) {
+      setErr("ap-ipv4", "IPv4 must be 4 numbers 0-255.");
+      ok = false;
+    } else clearErr("ap-ipv4");
+    clearErr("ap-ipv6");
   } else {
     const ipv6 = parseIPv6(ipv6Str);
-    if (!ipv6) { setErr("ap-ipv6", "IPv6 must be exactly 8 hex segments."); ok = false; }
-    else clearErr("ap-ipv6");
-    clearErr("ap-ipv4"); // ignore ipv4 when disabled
+    if (!ipv6) {
+      setErr("ap-ipv6", "IPv6 must be exactly 8 hex segments.");
+      ok = false;
+    } else clearErr("ap-ipv6");
+    clearErr("ap-ipv4");
   }
 
-  // Always-required IPv4 fields (gateway/subnet/dns)
-  const gw = parseIPv4(document.getElementById("ap-gateway").value);
-  if (!gw) { setErr("ap-gateway", "Gateway must be IPv4 (0-255)."); ok = false; } else clearErr("ap-gateway");
+  const gw = parseIPv4(document.getElementById("ap-gateway")?.value || "");
+  if (!gw) {
+    setErr("ap-gateway", "Gateway must be IPv4 (0-255).");
+    ok = false;
+  } else clearErr("ap-gateway");
 
-  const sn = parseIPv4(document.getElementById("ap-subnet").value);
-  if (!sn) { setErr("ap-subnet", "Subnet must be IPv4 (0-255)."); ok = false; } else clearErr("ap-subnet");
+  const sn = parseIPv4(document.getElementById("ap-subnet")?.value || "");
+  if (!sn) {
+    setErr("ap-subnet", "Subnet must be IPv4 (0-255).");
+    ok = false;
+  } else clearErr("ap-subnet");
 
-  const d1 = parseIPv4(document.getElementById("ap-dns1").value);
-  if (!d1) { setErr("ap-dns1", "Primary DNS must be IPv4 (0-255)."); ok = false; } else clearErr("ap-dns1");
+  const d1 = parseIPv4(document.getElementById("ap-dns1")?.value || "");
+  if (!d1) {
+    setErr("ap-dns1", "Primary DNS must be IPv4 (0-255).");
+    ok = false;
+  } else clearErr("ap-dns1");
 
-  const d2 = parseIPv4(document.getElementById("ap-dns2").value);
-  if (!d2) { setErr("ap-dns2", "Secondary DNS must be IPv4 (0-255)."); ok = false; } else clearErr("ap-dns2");
+  const d2 = parseIPv4(document.getElementById("ap-dns2")?.value || "");
+  if (!d2) {
+    setErr("ap-dns2", "Secondary DNS must be IPv4 (0-255).");
+    ok = false;
+  } else clearErr("ap-dns2");
 
   return ok;
 }
@@ -255,18 +311,28 @@ function validateSTA() {
   let ok = true;
 
   const ssid = document.getElementById("st-ssid").value.trim();
-  if (!ssid) { setErr("st-ssid", "SSID is required."); ok = false; }
-  else if (ssid.length > 32) { setErr("st-ssid", "SSID must be 32 characters or fewer."); ok = false; }
-  else clearErr("st-ssid");
+  if (!ssid) {
+    setErr("st-ssid", "SSID is required.");
+    ok = false;
+  } else if (ssid.length > 32) {
+    setErr("st-ssid", "SSID must be 32 characters or fewer.");
+    ok = false;
+  } else clearErr("st-ssid");
 
   const key = document.getElementById("st-key").value.trim();
-  if (key.length > 64) { setErr("st-key", "Key must be 0 to 64 characters."); ok = false; }
-  else clearErr("st-key");
+  if (key.length > 64) {
+    setErr("st-key", "Key must be 0 to 64 characters.");
+    ok = false;
+  } else clearErr("st-key");
 
   const hn = document.getElementById("st-hostname").value.trim();
-  if (!hn) { setErr("st-hostname", "Host Name is required."); ok = false; }
-  else if (hn.length > 16) { setErr("st-hostname", "Host Name must be 16 characters or fewer."); ok = false; }
-  else clearErr("st-hostname");
+  if (!hn) {
+    setErr("st-hostname", "Host Name is required.");
+    ok = false;
+  } else if (hn.length > 16) {
+    setErr("st-hostname", "Host Name must be 16 characters or fewer.");
+    ok = false;
+  } else clearErr("st-hostname");
 
   return ok;
 }
@@ -286,14 +352,22 @@ function validateSEC() {
   let ok = true;
 
   const u = document.getElementById("sec-username").value.trim();
-  if (!u) { setErr("sec-username", "Username is required."); ok = false; }
-  else if (u.length > 16) { setErr("sec-username", "Username must be 16 characters or fewer."); ok = false; }
-  else clearErr("sec-username");
+  if (!u) {
+    setErr("sec-username", "Username is required.");
+    ok = false;
+  } else if (u.length > 16) {
+    setErr("sec-username", "Username must be 16 characters or fewer.");
+    ok = false;
+  } else clearErr("sec-username");
 
   const p = document.getElementById("sec-password").value.trim();
-  if (!p) { setErr("sec-password", "Password is required."); ok = false; }
-  else if (p.length > 16) { setErr("sec-password", "Password must be 16 characters or fewer."); ok = false; }
-  else clearErr("sec-password");
+  if (!p) {
+    setErr("sec-password", "Password is required.");
+    ok = false;
+  } else if (p.length > 16) {
+    setErr("sec-password", "Password must be 16 characters or fewer.");
+    ok = false;
+  } else clearErr("sec-password");
 
   return ok;
 }
@@ -307,26 +381,37 @@ function buildSecWriteFields() {
 
 /* ---------------------------
    save current section (on switch/back)
+   ✅ فقط اگر کاربر واقعاً دست زده و dirty شده باشد، WRITE انجام می‌شود.
+   ✅ اگر invalid باشد، سوییچ/Back متوقف می‌شود (برای اینکه "سیو قبلی باید انجام شود")
 ----------------------------*/
 async function saveCurrentSectionIfNeeded() {
   if (!ws?.isConnected) return true;
 
-  if (openId === "acc-ap" && dirtyAP) {
-    if (!validateAP()) { showToast("Fix Access Point errors first.", "bad"); return false; }
+  if (openId === "acc-ap" && dirtyAP && userTouchedAP) {
+    if (!validateAP()) {
+      showToast("Fix Access Point errors first.", "bad");
+      return false;
+    }
     ws.networkApWrite(buildApWriteFields());
     dirtyAP = false;
     showToast("AP settings sent.", "ok");
   }
 
-  if (openId === "acc-sta" && dirtySTA) {
-    if (!validateSTA()) { showToast("Fix Station errors first.", "bad"); return false; }
+  if (openId === "acc-sta" && dirtySTA && userTouchedSTA) {
+    if (!validateSTA()) {
+      showToast("Fix Station errors first.", "bad");
+      return false;
+    }
     ws.networkStaWrite(buildStaWriteFields());
     dirtySTA = false;
     showToast("Station settings sent.", "ok");
   }
 
-  if (openId === "acc-sec" && dirtySEC) {
-    if (!validateSEC()) { showToast("Fix Security errors first.", "bad"); return false; }
+  if (openId === "acc-sec" && dirtySEC && userTouchedSEC) {
+    if (!validateSEC()) {
+      showToast("Fix Security errors first.", "bad");
+      return false;
+    }
     ws.networkSecurityWrite(buildSecWriteFields());
     dirtySEC = false;
     showToast("Security settings sent.", "ok");
@@ -348,9 +433,11 @@ function setupReset() {
   const sub = document.getElementById("resetSub");
   const txt = document.getElementById("resetText");
 
+  if (!btn || !ring || !main || !sub || !txt) return;
+
   const total = 314;
   let running = false;
-  let t = null;
+  let timer = null;
   let n = 7;
   let sentAt5 = false;
 
@@ -373,22 +460,25 @@ function setupReset() {
 
   btn.addEventListener("click", () => {
     if (running) return;
-    if (!ws?.isConnected) { showToast("WebSocket disconnected.", "bad"); return; }
+    if (!ws?.isConnected) {
+      showToast("WebSocket disconnected.", "bad");
+      return;
+    }
 
     running = true;
     n = 7;
     sentAt5 = false;
+
     main.textContent = String(n);
     sub.textContent = "Reset countdown";
     txt.textContent = "Factory reset command";
     paint();
 
-    t = setInterval(() => {
+    timer = setInterval(() => {
       n -= 1;
       main.textContent = String(n);
       paint();
 
-      // send at 5
       if (!sentAt5 && n === 5) {
         sentAt5 = true;
         ws.resetFactoryCommand();
@@ -396,10 +486,9 @@ function setupReset() {
       }
 
       if (n <= 0) {
-        clearInterval(t);
-        t = null;
+        clearInterval(timer);
+        timer = null;
 
-        // after countdown finished -> go login
         setTimeout(() => {
           window.location.href = "index.html";
         }, 600);
@@ -411,69 +500,140 @@ function setupReset() {
 }
 
 /* ---------------------------
-   input bindings (live validation + dirty)
+   input bindings (dirty + validation)
+   ✅ نکته کلیدی: toggleIP در لود اولیه دیگر dirty نمی‌کند
 ----------------------------*/
 function bindInputs() {
-  // AP dirty
-  ["ap-ssid","ap-preSharedKey","ap-hostname","ap-ipv4","ap-ipv6","ap-port","ap-gateway","ap-subnet","ap-dns1","ap-dns2","ap-wifiChannel","ap-maxConnection"]
-    .forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("ap")));
-  document.getElementById("ap-ssidHidden").addEventListener("change", () => markDirty("ap"));
-  document.getElementById("ap-wifiChannel").addEventListener("change", () => markDirty("ap"));
-  document.getElementById("ap-maxConnection").addEventListener("change", () => markDirty("ap"));
+  // ---------- AP ----------
+  const apInputs = [
+    "ap-ssid",
+    "ap-preSharedKey",
+    "ap-hostname",
+    "ap-ipv4",
+    "ap-ipv6",
+    "ap-port",
+    "ap-gateway",
+    "ap-subnet",
+    "ap-dns1",
+    "ap-dns2",
+  ];
 
-  // Station dirty
-  ["st-ssid","st-key","st-hostname"].forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("sta")));
+  apInputs.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      userTouchedAP = true;
+      dirtyAP = true;
+      validateAP();
+    });
+  });
 
-  // Security dirty
-  ["sec-username","sec-password"].forEach(id => document.getElementById(id).addEventListener("input", () => markDirty("sec")));
+  const apHidden = document.getElementById("ap-ssidHidden");
+  if (apHidden) {
+    apHidden.addEventListener("change", () => {
+      userTouchedAP = true;
+      dirtyAP = true;
+      // Hidden خودش validation ندارد
+    });
+  }
+
+  const apWifiChannel = document.getElementById("ap-wifiChannel");
+  if (apWifiChannel) {
+    apWifiChannel.addEventListener("change", () => {
+      userTouchedAP = true;
+      dirtyAP = true;
+      validateAP();
+    });
+  }
+
+  const apMaxConn = document.getElementById("ap-maxConnection");
+  if (apMaxConn) {
+    apMaxConn.addEventListener("change", () => {
+      userTouchedAP = true;
+      dirtyAP = true;
+      validateAP();
+    });
+  }
 
   // key filters
-  ["ap-ipv4","ap-gateway","ap-subnet","ap-dns1","ap-dns2"].forEach(id => {
-    document.getElementById(id).addEventListener("keydown", (e) => { if (!isIPv4CharsKey(e)) e.preventDefault(); });
+  ["ap-ipv4", "ap-gateway", "ap-subnet", "ap-dns1", "ap-dns2"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("keydown", (e) => {
+      if (!isIPv4CharsKey(e)) e.preventDefault();
+    });
   });
-  document.getElementById("ap-ipv6").addEventListener("keydown", (e) => { if (!isIPv6CharsKey(e)) e.preventDefault(); });
-  document.getElementById("ap-port").addEventListener("keydown", (e) => { if (!isDigitsKey(e)) e.preventDefault(); });
 
-  // live validation
-  document.getElementById("ap-ssid").addEventListener("input", validateAP);
-  document.getElementById("ap-preSharedKey").addEventListener("input", validateAP);
-  document.getElementById("ap-hostname").addEventListener("input", validateAP);
-  document.getElementById("ap-ipv4").addEventListener("input", validateAP);
-  document.getElementById("ap-ipv6").addEventListener("input", validateAP);
-  document.getElementById("ap-port").addEventListener("input", validateAP);
-  ["ap-gateway","ap-subnet","ap-dns1","ap-dns2"].forEach(id => document.getElementById(id).addEventListener("input", validateAP));
+  const apIPv6 = document.getElementById("ap-ipv6");
+  if (apIPv6) {
+    apIPv6.addEventListener("keydown", (e) => {
+      if (!isIPv6CharsKey(e)) e.preventDefault();
+    });
+  }
 
-  document.getElementById("st-ssid").addEventListener("input", validateSTA);
-  document.getElementById("st-key").addEventListener("input", validateSTA);
-  document.getElementById("st-hostname").addEventListener("input", validateSTA);
+  const apPort = document.getElementById("ap-port");
+  if (apPort) {
+    apPort.addEventListener("keydown", (e) => {
+      if (!isDigitsKey(e)) e.preventDefault();
+    });
+  }
 
-  document.getElementById("sec-username").addEventListener("input", validateSEC);
-  document.getElementById("sec-password").addEventListener("input", validateSEC);
-
-  // IP mode switch
+  // IP mode switch (✅ بدون dirty در لود اولیه)
   const r4 = document.getElementById("ap-ipmode4");
   const r6 = document.getElementById("ap-ipmode6");
   const v4 = document.getElementById("ap-ipv4");
   const v6 = document.getElementById("ap-ipv6");
 
-  function toggleIP() {
+  function applyIPModeUI(fromUser = false) {
+    if (!r4 || !r6 || !v4 || !v6) return;
+
     if (r4.checked) {
       v4.disabled = false;
       v6.disabled = true;
-      v6.value = "";
+      // فقط اگر کاربر تغییر داده باشد پاک کنیم
+      if (fromUser) v6.value = "";
       clearErr("ap-ipv6");
     } else {
       v6.disabled = false;
       v4.disabled = true;
-      v4.value = "";
+      if (fromUser) v4.value = "";
       clearErr("ap-ipv4");
     }
-    markDirty("ap");
-    validateAP();
+
+    if (fromUser) {
+      userTouchedAP = true;
+      dirtyAP = true;
+      validateAP();
+    }
   }
-  r4.addEventListener("change", toggleIP);
-  r6.addEventListener("change", toggleIP);
-  toggleIP();
+
+  if (r4) r4.addEventListener("change", () => applyIPModeUI(true));
+  if (r6) r6.addEventListener("change", () => applyIPModeUI(true));
+
+  // ✅ در لود اولیه فقط UI را ست کن، بدون dirty و بدون validate
+  applyIPModeUI(false);
+
+  // ---------- STA ----------
+  ["st-ssid", "st-key", "st-hostname"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      userTouchedSTA = true;
+      dirtySTA = true;
+      validateSTA();
+    });
+  });
+
+  // ---------- SEC ----------
+  ["sec-username", "sec-password"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      userTouchedSEC = true;
+      dirtySEC = true;
+      validateSEC();
+    });
+  });
 }
 
 /* ---------------------------
@@ -486,48 +646,82 @@ function bindWSEvents() {
 
   window.addEventListener("net-ap:read", (e) => {
     const d = e.detail?.raw || {};
-    lastAP = d;
 
     if (typeof d["AP SSID"] === "string") document.getElementById("ap-ssid").value = d["AP SSID"];
-    if (typeof d["AP Pre-Shared Key"] === "string") document.getElementById("ap-preSharedKey").value = d["AP Pre-Shared Key"];
+    if (typeof d["AP Pre-Shared Key"] === "string")
+      document.getElementById("ap-preSharedKey").value = d["AP Pre-Shared Key"];
 
-    if (d["Ssid Hidden"] !== undefined) document.getElementById("ap-ssidHidden").checked = !!d["Ssid Hidden"];
+    if (d["Ssid Hidden"] !== undefined)
+      document.getElementById("ap-ssidHidden").checked = !!d["Ssid Hidden"];
 
-    if (typeof d["AP HostName"] === "string") document.getElementById("ap-hostname").value = d["AP HostName"];
-    if (typeof d["AP Port"] === "number") document.getElementById("ap-port").value = String(d["AP Port"]);
+    if (typeof d["AP HostName"] === "string")
+      document.getElementById("ap-hostname").value = d["AP HostName"];
 
-    // channel: allow Auto
+    if (typeof d["AP Port"] === "number")
+      document.getElementById("ap-port").value = String(d["AP Port"]);
+
     if (d["Wifi Channel"] !== undefined) {
       const v = String(d["Wifi Channel"]);
-      document.getElementById("ap-wifiChannel").value = (v === "0" || v.toLowerCase() === "auto") ? "Auto" : v;
+      document.getElementById("ap-wifiChannel").value =
+        v === "0" || v.toLowerCase() === "auto" ? "Auto" : v;
     }
 
-    if (d["Max Connection"] !== undefined) document.getElementById("ap-maxConnection").value = String(d["Max Connection"]);
+    if (d["Max Connection"] !== undefined)
+      document.getElementById("ap-maxConnection").value = String(d["Max Connection"]);
 
-    if (Array.isArray(d["AP MAC"])) document.getElementById("ap-macaddress").value = formatMAC(d["AP MAC"]);
+    if (Array.isArray(d["AP MAC"]))
+      document.getElementById("ap-macaddress").value = formatMAC(d["AP MAC"]);
 
     // IPs
     if (Array.isArray(d["AP IPv4"])) {
       document.getElementById("ap-ipmode4").checked = true;
       document.getElementById("ap-ipv4").value = formatIPv4(d["AP IPv4"]);
+      // فقط UI
+      const r4 = document.getElementById("ap-ipmode4");
+      if (r4) r4.dispatchEvent(new Event("change")); // triggers applyIPModeUI(true) -> اما dirty می‌کند
+      // 👆 برای جلوگیری از dirty، بجاش دستی ست می‌کنیم:
+      // (در پایین override می‌کنیم)
     }
     if (Array.isArray(d["AP IPv6"])) {
       document.getElementById("ap-ipmode6").checked = true;
       document.getElementById("ap-ipv6").value = formatIPv6(d["AP IPv6"]);
     }
+
     // network
     if (Array.isArray(d["Gateway"])) document.getElementById("ap-gateway").value = formatIPv4(d["Gateway"]);
     if (Array.isArray(d["Subnet"])) document.getElementById("ap-subnet").value = formatIPv4(d["Subnet"]);
     if (Array.isArray(d["Primary DNS"])) document.getElementById("ap-dns1").value = formatIPv4(d["Primary DNS"]);
     if (Array.isArray(d["Secondary DNS"])) document.getElementById("ap-dns2").value = formatIPv4(d["Secondary DNS"]);
 
+    // ✅ بعد از READ، این بخش نباید dirty باشد
     dirtyAP = false;
-    validateAP();
+    userTouchedAP = false;
+
+    // ✅ apply UI for ip mode بدون dirty
+    const r4 = document.getElementById("ap-ipmode4");
+    const v4 = document.getElementById("ap-ipv4");
+    const v6 = document.getElementById("ap-ipv6");
+    if (r4 && v4 && v6) {
+      if (r4.checked) {
+        v4.disabled = false;
+        v6.disabled = true;
+        clearErr("ap-ipv6");
+      } else {
+        v6.disabled = false;
+        v4.disabled = true;
+        clearErr("ap-ipv4");
+      }
+    }
+
+    // ✅ خطاها را پاک کن (نمایش خطای بی‌مورد بعد از read اذیت‌کننده است)
+    [
+      "ap-ssid","ap-preSharedKey","ap-hostname","ap-ipv4","ap-ipv6",
+      "ap-port","ap-gateway","ap-subnet","ap-dns1","ap-dns2"
+    ].forEach(clearErr);
   });
 
   window.addEventListener("net-sta:read", (e) => {
     const d = e.detail?.raw || {};
-    lastSTA = d;
 
     if (typeof d["Modem SSID"] === "string") document.getElementById("st-ssid").value = d["Modem SSID"];
     if (typeof d["Modem Pre-Shared Key"] === "string") document.getElementById("st-key").value = d["Modem Pre-Shared Key"];
@@ -538,18 +732,21 @@ function bindWSEvents() {
     if (Array.isArray(d["Modem MAC"])) document.getElementById("st-modemmac").value = formatMAC(d["Modem MAC"]);
 
     dirtySTA = false;
-    validateSTA();
+    userTouchedSTA = false;
+
+    ["st-ssid","st-key","st-hostname"].forEach(clearErr);
   });
 
   window.addEventListener("net-sec:read", (e) => {
     const d = e.detail?.raw || {};
-    lastSEC = d;
 
     if (typeof d["username"] === "string") document.getElementById("sec-username").value = d["username"];
     if (typeof d["password"] === "string") document.getElementById("sec-password").value = d["password"];
 
     dirtySEC = false;
-    validateSEC();
+    userTouchedSEC = false;
+
+    ["sec-username","sec-password"].forEach(clearErr);
   });
 
   window.addEventListener("device:settings:saved", () => {
@@ -569,12 +766,14 @@ function bindWSEvents() {
    3) then go dashboard
 ----------------------------*/
 function setupBack() {
-  document.getElementById("btnBack").addEventListener("click", async () => {
+  const b = document.getElementById("btnBack");
+  if (!b) return;
+
+  b.addEventListener("click", async () => {
     const ok = await saveCurrentSectionIfNeeded();
     if (!ok) return;
 
     if (ws?.isConnected) ws.pushButtonConfig();
-    // Dashboard page in this project is userInterface.html
     window.location.href = "userInterface.html";
   });
 }
@@ -585,6 +784,7 @@ function setupBack() {
 window.addEventListener("DOMContentLoaded", () => {
   // default open AP
   setActiveAccordion("acc-ap");
+
   bindAccordion();
   bindInputs();
   bindWSEvents();

@@ -9,7 +9,7 @@ import { connectWebSocket } from "./ws.js";
  */
 const ROUTES = {
   backTo: "userInterface.html",  // پیشنهاد بر اساس ساختار پروژه‌های قبلی
-  updatePage: "./update.html"           // صفحه OTA/Update
+  updatePage: "update"           // صفحه OTA/Update
 };
 
 const el = {
