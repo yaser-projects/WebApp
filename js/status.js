@@ -4,7 +4,7 @@ import { connectWebSocket } from "./ws.js";
 
 // مسیر داشبوردت اگر فرق دارد فقط همین را تغییر بده
 const ROUTES = {
-  dashboard: "userInterface.html",
+  dashboard: "dashboard.html",
 };
 
 const el = {

@@ -3,7 +3,7 @@
 const STORE_KEY = "ui_objects_v1";
 
 // IMPORTANT: if your UI filename is different, change it here:
-const USER_INTERFACE_PAGE = "userInterface.html";
+const USER_INTERFACE_PAGE = "dashboard.html";
 
 // Your ScanBand page file:
 const SCANBAND_PAGE = "remuteScan.html";

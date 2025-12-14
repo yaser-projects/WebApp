@@ -8,7 +8,7 @@ import { connectWebSocket } from "./ws.js";
  * - updatePage: صفحه آپدیت ESP32
  */
 const ROUTES = {
-  backTo: "userInterface.html",  // پیشنهاد بر اساس ساختار پروژه‌های قبلی
+  backTo: "dashboard.html",  // پیشنهاد بر اساس ساختار پروژه‌های قبلی
   updatePage: "update"           // صفحه OTA/Update
 };
 

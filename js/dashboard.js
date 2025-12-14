@@ -5,7 +5,7 @@
  * Replace this later with real data source (WebSocket, API, etc.).
  */
 
-const STORE_KEY = "ui_objects_v1";
+const STORE_KEY = "dashboard_objects_v1";
 
 // Change this to your real devices page filename if different:
 const DEVICES_PAGE = "addDevice.html";
@@ -108,8 +108,8 @@ function render(list) {
 }
 
 function setConnectionStatus(isConnected) {
-  const text = document.getElementById("uiStatusText");
-  const dot = document.getElementById("statusDot");
+  const text = document.getElementById("dashboardStatusText");
+  const dot = document.getElementById("dashboardDot");
 
   if (isConnected) {
     text.textContent = "Ready";
@@ -174,27 +174,27 @@ function main() {
 
   const searchCtl = setupSearch(allItems);
 
-  document.getElementById("btnSearch").addEventListener("click", () => {
-    if (searchCtl.isOpen()) searchCtl.close();
-    else searchCtl.open();
-  });
+document.getElementById("btnSearch").addEventListener("click", () => {
+  if (searchCtl.isOpen()) searchCtl.close();
+  else searchCtl.open();
+});
 
-  document.getElementById("btnDevices").addEventListener("click", () => {
-    window.location.href = DEVICES_PAGE;
-  });
+document.getElementById("btnDevices").addEventListener("click", () => {
+  window.location.href = DEVICES_PAGE;
+});
 
   // ✅ Bottom nav buttons
-  document.getElementById("btnNavAbout")?.addEventListener("click", () => {
-    window.location.href = ROUTES.about;
-  });
+document.getElementById("btnNavAbout")?.addEventListener("click", () => {
+  window.location.href = ROUTES.about;
+});
 
-  document.getElementById("btnNavStatus")?.addEventListener("click", () => {
-    window.location.href = ROUTES.status;
-  });
+document.getElementById("btnNavStatus")?.addEventListener("click", () => {
+  window.location.href = ROUTES.status;
+});
 
-  document.getElementById("btnNavNetwork")?.addEventListener("click", () => {
-    window.location.href = ROUTES.network;
-  });
+document.getElementById("btnNavNetwork")?.addEventListener("click", () => {
+  window.location.href = ROUTES.network;
+});
 }
 
 document.addEventListener("DOMContentLoaded", main);
