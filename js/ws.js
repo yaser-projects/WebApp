@@ -125,6 +125,16 @@ class WSConnection {
 
       // user handlers
       this.handlers.onJSON?.(data, this);
+
+            // Device Info (About)
+      this._handleDeviceInfoInbound(data);
+
+      // Status - AP Clients
+      this._handleAPClientsInbound(data);
+
+      // Remote Scan protocol
+      this._handleRemoteScanInbound(data);
+
     };
 
     ws.onerror = (error) => {
@@ -216,6 +226,49 @@ class WSConnection {
       this._emit("device:info", { info, raw: data });
     }
   }
+    // =========================================================
+  // Status Page - Active DHCP Clients (MESSAGE LIVES HERE)
+  // =========================================================
+  apClientsRead() {
+    return this.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: ["AP Station Num", "Active Clients", "AP HostName"],
+    });
+  }
+
+  _handleAPClientsInbound(data) {
+    if (!data || typeof data !== "object") return;
+
+    // نمونه دریافتی شما:
+    // {"AP Station Num":1,"Scan Active Clients":[["Device 0","192.168.1.5","a5..."],...],"AP HostName":"MB_Device"}
+
+    const hasAny =
+      ("AP Station Num" in data) ||
+      ("Active Clients" in data) ||
+      ("Scan Active Clients" in data) ||
+      ("AP HostName" in data);
+
+    if (!hasAny) return;
+
+    const stationNum = Number(data["AP Station Num"]);
+    const hostName = (typeof data["AP HostName"] === "string") ? data["AP HostName"] : undefined;
+
+    // بعضی فریمور‌ها ممکنه با کلیدهای متفاوت بفرستن، هر دو را پوشش می‌دهیم
+    const clientsRaw =
+      data["Active Clients"] ??
+      data["Scan Active Clients"];
+
+    const clients = Array.isArray(clientsRaw) ? clientsRaw : [];
+
+    this._emit("ap-clients:read", {
+      stationNum: Number.isFinite(stationNum) ? stationNum : undefined,
+      clients,
+      hostName,
+      raw: data,
+    });
+  }
+
 
   // =========================================================
   // Remote Scan API (ALL MESSAGES LIVE HERE)

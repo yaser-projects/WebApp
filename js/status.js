@@ -1,64 +1,105 @@
-// نمایش جدول DHCP و مدیریت دکمه‌ها و Swipe برگشت
+"use strict";
 
-function loadStatusClients() {
-  const table = document.getElementById("dhcp-table").getElementsByTagName("tbody")[0];
-  table.innerHTML = `<tr>
-    <td colspan="4" style="text-align:center; color:#0ff;">Loading...</td>
-  </tr>`;
+import { connectWebSocket } from "./ws.js";
 
-  centralManager.readStatusClients(function (res) {
-    // ===> کلید درست اینه:
-    let clients = res["Scan Active Clients"] || [];
-    let count = parseInt(res["AP Station Num"] || clients.length || 0);
+// مسیر داشبوردت اگر فرق دارد فقط همین را تغییر بده
+const ROUTES = {
+  dashboard: "userInterface.html",
+};
 
-    document.getElementById("device-count").textContent = count;
+const el = {
+  btnBack: document.getElementById("btnBack"),
+  titleClients: document.getElementById("titleClients"),
+  tbody: document.getElementById("clientsTbody"),
+  readState: document.getElementById("readState"),
+};
 
-    if (!Array.isArray(clients) || clients.length === 0) {
-      table.innerHTML = `<tr>
-        <td colspan="4" style="text-align:center; color:#fa0;">No devices connected</td>
-      </tr>`;
-      return;
-    }
+let ws = null;
 
-    table.innerHTML = clients.map(arr =>
-      `<tr>
-        <td>${arr[0] || "-"}</td>
-        <td>${arr[1] || "-"}</td>
-        <td>${arr[2] || "-"}</td>
-        <td>${res["AP HostName"] || "-"}</td>
-      </tr>`
-    ).join('');
-  });
+function setState(t) {
+  el.readState.textContent = t;
 }
 
+function setTitle(n) {
+  el.titleClients.textContent = `Active DHCP Clients (${n} devices connected)`;
+}
 
-document.addEventListener("DOMContentLoaded", function () {
-  // حتماً اول WebSocket را اینیش کن و بعد بارگذاری جدول رو به onOpen بسپار!
-  centralManager.initWebSocket({
-    onOpen: function () {
-      loadStatusClients();
-    }
+function renderEmpty(text = "No clients connected") {
+  el.tbody.innerHTML = `
+    <tr class="emptyRow">
+      <td colspan="4">${text}</td>
+    </tr>
+  `;
+}
+
+function renderRows(clients, hostName) {
+  if (!Array.isArray(clients) || clients.length === 0) {
+    renderEmpty("No clients connected");
+    return;
+  }
+
+  const rows = clients.map((c) => {
+    const name = c?.[0] ?? "-";
+    const ip   = c?.[1] ?? "-";
+    const mac  = c?.[2] ?? "-";
+    const hn   = hostName ?? "-";
+    return `
+      <tr>
+        <td>${escapeHtml(name)}</td>
+        <td>${escapeHtml(ip)}</td>
+        <td>${escapeHtml(mac)}</td>
+        <td>${escapeHtml(hn)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  el.tbody.innerHTML = rows;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function requestRead() {
+  if (!ws?.isConnected) {
+    setState("Disconnected");
+    return;
+  }
+  setState("Reading device status...");
+  ws.apClientsRead(); // ✅ پیام فقط داخل ws.js
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTitle(0);
+  renderEmpty("Reading...");
+  setState("Connecting...");
+
+  el.btnBack.addEventListener("click", () => {
+    window.location.href = ROUTES.dashboard;
   });
 
-  // دکمه Back
-  var backBtn = document.getElementById("status-back");
-  if (backBtn) {
-    backBtn.onclick = function () {
-      window.location.href = "dashboard.html";
-    };
-  }
+  ws = connectWebSocket({
+    onOpen: () => requestRead(),
+    onClose: () => setState("Disconnected"),
+    onError: () => setState("Disconnected"),
+  });
 
-  // دکمه Refresh
-  var refreshBtn = document.getElementById("status-refresh");
-  if (refreshBtn) {
-    refreshBtn.onclick = function () {
-      loadStatusClients();
-    };
-  }
-});
+  // ✅ پاسخ از ws.js به شکل event می‌آید
+  window.addEventListener("ap-clients:read", (e) => {
+    const stationNum = e?.detail?.stationNum;
+    const clients = e?.detail?.clients;
+    const hostName = e?.detail?.hostName;
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (typeof centralManager?.enableSwipeBack === 'function') {
-    centralManager.enableSwipeBack("dashboard.html");
-  }
+    // اگر Station Num نبود، از طول آرایه استفاده کن
+    const n = Number.isFinite(stationNum) ? stationNum : (Array.isArray(clients) ? clients.length : 0);
+
+    setTitle(n);
+    renderRows(clients, hostName);
+    setState("Updated.");
+  });
 });

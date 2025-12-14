@@ -1,57 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-
+<!doctype html>
+<html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <title>Status - Metal Brain</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="centralManager.js"></script>
-  <script src="status.js"></script>
-  <link rel="stylesheet" href="css/common-style.css">
-  <link rel="stylesheet" href="css/status.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Status</title>
+  <link rel="stylesheet" href="CSS/status.css" />
 </head>
 
 <body>
-  <section class="background">
-    <span style="--i:1"></span>
-    <span style="--i:2"></span>
-    <span style="--i:3"></span>
-    <span style="--i:4"></span>
-  </section>
+  <main class="wrap">
+    <section class="panel" aria-label="Status">
 
-  <div class="top-bar">
-    <span id="status-back" class="back-icon fas fa-arrow-left" title="Back"></span>
-  </div>
-  <div class="status-wrapper">
-    <div class="status-table-block">
-      <h3 class="status-table-title">
-        Active DHCP Clients (<span id="device-count">0</span> devices connected)
-      </h3>
-      <fieldset>
-        <table class="status-table" id="dhcp-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>IP Address</th>
-              <th>MAC Address</th>
-              <th>AP HostName</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="4" style="text-align:center; color:#0ff;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </fieldset>
-      <div class="status-table-buttons">
-        <button class="status-refresh" id="status-refresh" title="Refresh List">
-          <i class="fas fa-rotate"></i>
-          <span>Refresh</span>
-        </button>
+      <div class="topActions">
+        <button class="btnTop" id="btnBack" type="button">Back to User Interface</button>
       </div>
-    </div>
-  </div>
-</body>
 
+      <section class="card">
+        <h2 class="title" id="titleClients">Active DHCP Clients (0 devices connected)</h2>
+
+        <div class="tableWrap" role="region" aria-label="Active DHCP Clients Table">
+          <table class="tbl" aria-label="Active DHCP Clients">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>IP Address</th>
+                <th>MAC Address</th>
+                <th>AP HostName</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTbody">
+              <tr class="emptyRow">
+                <td colspan="4">Reading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="readState" id="readState">Reading device status...</div>
+      </section>
+
+    </section>
+  </main>
+
+  <script type="module" src="JS/status.js"></script>
+</body>
 </html>

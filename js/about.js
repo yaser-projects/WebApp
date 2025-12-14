@@ -1,26 +1,20 @@
 "use strict";
 
-/**
- * About page WebSocket:
- * On load (and Update click) send:
- * {
- *   "setting": "device",
- *   "action": "read",
- *   "fields": ["Device Info"]
- * }
- *
- * Expected response example:
- * {"Device Info":["Metal Brain","Praid","ES 131","MB-WBSR-V1.0","2025/06","9215951354","1.0"]}
- */
+import { connectWebSocket } from "./ws.js";
 
-const WS_PATH = "/ws";
-const READ_MSG = {
-  setting: "device",
-  action: "read",
-  fields: ["Device Info"],
+/**
+ * مسیرها (اگر اسم فایل/مسیر پروژه‌ات فرق دارد فقط همین دو خط را عوض کن)
+ * - backTo: صفحه داشبورد/یوزراینترفیس
+ * - updatePage: صفحه آپدیت ESP32
+ */
+const ROUTES = {
+  backTo: "userInterface.html",  // پیشنهاد بر اساس ساختار پروژه‌های قبلی
+  updatePage: "./update.html"           // صفحه OTA/Update
 };
 
 const el = {
+  btnBack: document.getElementById("btnBack"),
+  btnUpdate: document.getElementById("btnUpdate"),
   manufacturer: document.getElementById("vManufacturer"),
   deviceName: document.getElementById("vDeviceName"),
   modelNumber: document.getElementById("vModelNumber"),
@@ -29,16 +23,9 @@ const el = {
   serialNumber: document.getElementById("vSerialNumber"),
   firmwareVersion: document.getElementById("vFirmwareVersion"),
   readState: document.getElementById("readState"),
-  btnUpdate: document.getElementById("btnUpdate"),
 };
 
 let ws = null;
-let reconnectTimer = null;
-
-function wsUrl() {
-  const proto = location.protocol === "https:" ? "wss://" : "ws://";
-  return proto + location.host + WS_PATH;
-}
 
 function setReading(text) {
   el.readState.textContent = text;
@@ -55,75 +42,50 @@ function setPlaceholders() {
 }
 
 function applyDeviceInfo(arr) {
-  // Mapping:
-  // [0]=Manufacturer, [1]=Device Name, [2]=Model Number,
-  // [3]=Device Model, [4]=Production Date, [5]=Serial Number, [6]=Firmware Version
-  el.manufacturer.textContent = arr[0] ?? "-";
-  el.deviceName.textContent = arr[1] ?? "-";
-  el.modelNumber.textContent = arr[2] ?? "-";
-  el.deviceModel.textContent = arr[3] ?? "-";
-  el.productionDate.textContent = arr[4] ?? "-";
-  el.serialNumber.textContent = arr[5] ?? "-";
-  el.firmwareVersion.textContent = arr[6] ?? "-";
+  el.manufacturer.textContent = arr?.[0] ?? "-";
+  el.deviceName.textContent = arr?.[1] ?? "-";
+  el.modelNumber.textContent = arr?.[2] ?? "-";
+  el.deviceModel.textContent = arr?.[3] ?? "-";
+  el.productionDate.textContent = arr?.[4] ?? "-";
+  el.serialNumber.textContent = arr?.[5] ?? "-";
+  el.firmwareVersion.textContent = arr?.[6] ?? "-";
 }
 
-function safeJsonParse(s) {
-  try { return JSON.parse(s); } catch { return null; }
-}
-
-function sendRead() {
-  if (!ws || ws.readyState !== WebSocket.OPEN) {
+function requestRead() {
+  if (!ws?.isConnected) {
     setReading("Disconnected");
     return;
   }
   setReading("Reading device info...");
-  ws.send(JSON.stringify(READ_MSG));
-}
-
-function connect() {
-  if (reconnectTimer) {
-    clearTimeout(reconnectTimer);
-    reconnectTimer = null;
-  }
-
-  try {
-    ws = new WebSocket(wsUrl());
-  } catch {
-    setReading("Disconnected");
-    return;
-  }
-
-  ws.addEventListener("open", () => {
-    sendRead();
-  });
-
-  ws.addEventListener("message", (ev) => {
-    const obj = safeJsonParse(ev.data);
-    if (!obj) return;
-
-    const info = obj["Device Info"];
-    if (Array.isArray(info) && info.length >= 7) {
-      applyDeviceInfo(info);
-      setReading("Device info updated.");
-    }
-  });
-
-  ws.addEventListener("close", () => {
-    setReading("Disconnected");
-    reconnectTimer = setTimeout(connect, 1200);
-  });
-
-  ws.addEventListener("error", () => {
-    setReading("Disconnected");
-  });
+  ws.deviceInfoRead(); // ✅ پیام فقط داخل ws.js
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   setPlaceholders();
-  setReading("Reading device info...");
-  connect();
+  setReading("Connecting...");
 
+  // Back -> User Interface
+  el.btnBack.addEventListener("click", () => {
+    window.location.href = ROUTES.backTo;
+  });
+
+  // Update -> Update HTML (ESP32)
   el.btnUpdate.addEventListener("click", () => {
-    sendRead();
+    window.location.href = ROUTES.updatePage;
+  });
+
+  // WebSocket (برای خواندن اطلاعات)
+  ws = connectWebSocket({
+    onOpen: () => requestRead(),
+    onClose: () => setReading("Disconnected"),
+    onError: () => setReading("Disconnected"),
+  });
+
+  window.addEventListener("device:info", (e) => {
+    const info = e?.detail?.info;
+    if (Array.isArray(info)) {
+      applyDeviceInfo(info);
+      setReading("Device info updated.");
+    }
   });
 });

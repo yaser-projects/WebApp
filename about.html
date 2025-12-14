@@ -11,6 +11,20 @@
   <main class="wrap">
     <section class="panel" aria-label="About">
 
+      <!-- Top Bar -->
+      <div class="topbar">
+        <button class="iconBtn" id="btnBack" type="button" aria-label="Back">
+          <!-- chevron-left -->
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+
+        <div class="topbarRight">
+          <div class="statusDot" title="About"></div>
+        </div>
+      </div>
+
       <header class="hero">
         <h1 class="brand">METAL BRAIN</h1>
         <p class="desc">
@@ -72,12 +86,13 @@
       </section>
 
       <div class="actions">
+        <!-- این دکمه از این به بعد میره به صفحه آپدیت ESP32 -->
         <button class="btn" id="btnUpdate" type="button">Update</button>
       </div>
 
     </section>
   </main>
 
-  <script src="JS/about.js"></script>
+  <script type="module" src="JS/about.js"></script>
 </body>
 </html>
