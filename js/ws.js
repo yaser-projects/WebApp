@@ -1,11 +1,12 @@
 // ============================================
-// Metal Brain - Shared WebSocket Module
+// Metal Brain - WebSocket Client (ALL MESSAGES LIVE HERE)
 // ============================================
 
-
 const WS_CONFIG = {
-  FALLBACK_HOST: "192.168.1.2",
-  WS_PORT: "",
+  // Default device IPs to try (you can override from URL: ?ws=192.168.4.1)
+  FALLBACK_HOSTS: ["192.168.1.2", "192.168.4.1"],
+  // Leave empty to try common ports automatically ("" -> default 80, then 81)
+  WS_PORTS: ["", "81"],
   WS_PATH: "/ws",
   USE_DEVICE_FIRST: true,
   CONNECT_TIMEOUT: 5000,
@@ -21,72 +22,141 @@ function buildWSURL(host, port = "", path = "/ws") {
 function getWSURLs() {
   const urls = [];
   const currentHost = location.hostname;
-  const fallbackHost = WS_CONFIG.FALLBACK_HOST;
-  const port = WS_CONFIG.WS_PORT;
+
+  // Allow override: ?ws=HOST or ?wsHost=HOST
+  const params = new URLSearchParams(location.search);
+  const overrideHost = params.get("ws") || params.get("wsHost") || "";
+
+  const fallbackHosts = overrideHost
+    ? [overrideHost]
+    : (Array.isArray(WS_CONFIG.FALLBACK_HOSTS) ? WS_CONFIG.FALLBACK_HOSTS : []);
+
+  const ports =
+    Array.isArray(WS_CONFIG.WS_PORTS) && WS_CONFIG.WS_PORTS.length
+      ? WS_CONFIG.WS_PORTS
+      : ["", "81"];
+
   const path = WS_CONFIG.WS_PATH;
 
+  const addHost = (host) => {
+    if (!host) return;
+    ports.forEach((p) => urls.push(buildWSURL(host, p, path)));
+  };
+
+  const addCurrent = () => {
+    if (!currentHost) return;
+    addHost(currentHost);
+  };
+
   if (WS_CONFIG.USE_DEVICE_FIRST) {
-    urls.push(buildWSURL(fallbackHost, port, path));
-    if (currentHost !== "localhost" && currentHost !== "127.0.0.1") {
-      urls.push(buildWSURL(currentHost, port, path));
-    }
+    fallbackHosts.forEach(addHost);
+    addCurrent();
   } else {
-    if (currentHost !== "localhost" && currentHost !== "127.0.0.1") {
-      urls.push(buildWSURL(currentHost, port, path));
-    }
-    urls.push(buildWSURL(fallbackHost, port, path));
+    addCurrent();
+    fallbackHosts.forEach(addHost);
   }
 
-  if (urls.length === 0) urls.push(buildWSURL("localhost", port, path));
-  return urls;
+  if (urls.length === 0) addHost("localhost");
+
+  // Deduplicate
+  return [...new Set(urls)];
 }
 
 class WSConnection {
   constructor(handlers = {}) {
     this.handlers = handlers;
     this.ws = null;
-    this.urls = getWSURLs();
-    this.currentUrlIndex = 0;
-    this.reconnectTimer = null;
-    this.shouldReconnect = true;
+
+    this.isConnected = false;
     this.isConnecting = false;
 
-    // Remote Scan state
+    this.urlIndex = 0;
+    this.urls = getWSURLs();
+
+    this._events = new Map();
+
+    // Remote Scan internal state
     this._remoteScan = {
-      pendingStartAfterWrite: false,
       active: false,
+      pendingStartAfterWrite: false,
     };
   }
 
-  _emit(name, detail) {
-    window.dispatchEvent(new CustomEvent(name, { detail }));
+  on(eventName, cb) {
+    if (!this._events.has(eventName)) this._events.set(eventName, new Set());
+    this._events.get(eventName).add(cb);
+    return () => this.off(eventName, cb);
   }
 
-  connect() {
-    if (this.isConnecting || (this.ws && this.ws.readyState === WebSocket.OPEN)) return;
+  off(eventName, cb) {
+    const set = this._events.get(eventName);
+    if (!set) return;
+    set.delete(cb);
+  }
 
-    this.isConnecting = true;
-    const url = this.urls[this.currentUrlIndex];
-    console.log(`[WS] Connecting to: ${url}`);
-
-    try {
-      this.ws = new WebSocket(url);
-      this.setupEventHandlers();
-    } catch (error) {
-      console.error("[WS] Connection error:", error);
-      this.handleConnectionFailure();
+  _emit(eventName, payload) {
+    const set = this._events.get(eventName);
+    if (!set) return;
+    for (const cb of set) {
+      try {
+        cb(payload);
+      } catch (e) {
+        console.error(`[WS] listener error for ${eventName}:`, e);
+      }
     }
   }
 
-  setupEventHandlers() {
-    const ws = this.ws;
+  connect() {
+    if (this.isConnecting || this.isConnected) return;
+    this.isConnecting = true;
+
+    this.urls = getWSURLs();
+    this.urlIndex = 0;
+
+    this._connectNext();
+  }
+
+  _connectNext() {
+    if (this.urlIndex >= this.urls.length) {
+      this.isConnecting = false;
+      this.isConnected = false;
+      this._emit("ws-status", { connected: false, exhausted: true });
+      this.handlers.onClose?.(this);
+      setTimeout(() => this.connect(), WS_CONFIG.RECONNECT_DELAY);
+      return;
+    }
+
+    const url = this.urls[this.urlIndex++];
+    console.log("[WS] Connecting:", url);
+
+    let ws;
+    try {
+      ws = new WebSocket(url);
+    } catch (e) {
+      console.error("[WS] Failed to create WebSocket:", e);
+      this._connectNext();
+      return;
+    }
+
+    this.ws = ws;
+
+    const timeout = setTimeout(() => {
+      if (!this.isConnected) {
+        try {
+          ws.close();
+        } catch {}
+        this._connectNext();
+      }
+    }, WS_CONFIG.CONNECT_TIMEOUT);
 
     ws.onopen = () => {
-      console.log(`[WS] Connected to: ${ws.url}`);
+      clearTimeout(timeout);
+      console.log("[WS] Connected:", url);
+      this.isConnected = true;
       this.isConnecting = false;
-      this.currentUrlIndex = 0;
+
       this.handlers.onOpen?.(this);
-      this._emit("ws-status", { connected: true, url: ws.url });
+      this._emit("ws-status", { connected: true, url });
     };
 
     ws.onmessage = (event) => {
@@ -102,15 +172,14 @@ class WSConnection {
       this._emit("ws-message", data);
 
       // Internal handlers (each ONLY ONCE)
-      this._handleDeviceInfoInbound(data);   // About
-      this._handleAPClientsInbound(data);    // Status
-      this._handleNetworkSettingsInbound(data); // Network Settings ✅
-      this._handleRemoteScanInbound(data);   // Remote Scan
+      this._handleDeviceInfoInbound(data);        // About
+      this._handleAPClientsInbound(data);         // Status
+      this._handleNetworkSettingsInbound(data);   // Network Settings ✅
+      this._handleRemoteScanInbound(data);        // Remote Scan
 
       // user handlers
       this.handlers.onJSON?.(data, this);
     };
-
 
     ws.onerror = (error) => {
       console.error("[WS] Error:", error);
@@ -121,75 +190,46 @@ class WSConnection {
     ws.onclose = () => {
       console.log("[WS] Connection closed");
       this.isConnecting = false;
+      this.isConnected = false;
       this.handlers.onClose?.(this);
-
-      this._remoteScan.active = false;
-      this._remoteScan.pendingStartAfterWrite = false;
-
       this._emit("ws-status", { connected: false });
 
-      if (this.shouldReconnect && !this.isConnecting) this.scheduleReconnect();
+      // Reconnect
+      setTimeout(() => this.connect(), WS_CONFIG.RECONNECT_DELAY);
     };
   }
 
-  handleConnectionFailure() {
-    this.isConnecting = false;
-    this.currentUrlIndex++;
-
-    if (this.currentUrlIndex < this.urls.length) {
-      setTimeout(() => this.connect(), 500);
-    } else {
-      console.error("[WS] All connection attempts failed");
-      this.currentUrlIndex = 0;
-      if (this.shouldReconnect) this.scheduleReconnect();
-    }
-  }
-
-  scheduleReconnect() {
-    if (this.reconnectTimer) return;
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
-      this.currentUrlIndex = 0;
-      this.connect();
-    }, WS_CONFIG.RECONNECT_DELAY);
-  }
-
-  sendJSON(payload) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(payload));
-      return true;
-    }
-    console.warn("[WS] Cannot send: socket not open");
-    return false;
-  }
-
   close() {
-    this.shouldReconnect = false;
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
-    }
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
-    }
+    try {
+      this.ws?.close();
+    } catch {}
   }
 
-  get readyState() {
-    return this.ws ? this.ws.readyState : WebSocket.CLOSED;
-  }
-  get isConnected() {
-    return this.ws && this.ws.readyState === WebSocket.OPEN;
+  sendJSON(obj) {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+      console.warn("[WS] sendJSON ignored (not connected):", obj);
+      return false;
+    }
+    this.ws.send(JSON.stringify(obj));
+    return true;
   }
 
   // =========================================================
-  // Device Info (About) API (MESSAGE LIVES HERE)
+  // About Page (MESSAGE LIVES HERE)
   // =========================================================
   deviceInfoRead() {
     return this.sendJSON({
       setting: "device",
       action: "read",
-      fields: ["Device Info"],
+      fields: [
+        "Manufacturer",
+        "Device Name",
+        "Model Number",
+        "Device Model",
+        "Production Date",
+        "Serial Number",
+        "Firmware Version",
+      ],
     });
   }
 
@@ -201,6 +241,7 @@ class WSConnection {
       this._emit("device:info", { info, raw: data });
     }
   }
+
   // =========================================================
   // Status Page - Active DHCP Clients (MESSAGE LIVES HERE)
   // =========================================================
@@ -215,9 +256,6 @@ class WSConnection {
   _handleAPClientsInbound(data) {
     if (!data || typeof data !== "object") return;
 
-    // نمونه دریافتی شما:
-    // {"AP Station Num":1,"Scan Active Clients":[["Device 0","192.168.1.5","a5..."],...],"AP HostName":"MB_Device"}
-
     const hasAny =
       ("AP Station Num" in data) ||
       ("Active Clients" in data) ||
@@ -229,7 +267,6 @@ class WSConnection {
     const stationNum = Number(data["AP Station Num"]);
     const hostName = (typeof data["AP HostName"] === "string") ? data["AP HostName"] : undefined;
 
-    // بعضی فریمور‌ها ممکنه با کلیدهای متفاوت بفرستن، هر دو را پوشش می‌دهیم
     const clientsRaw =
       data["Active Clients"] ??
       data["Scan Active Clients"];
@@ -237,15 +274,15 @@ class WSConnection {
     const clients = Array.isArray(clientsRaw) ? clientsRaw : [];
 
     this._emit("ap-clients:read", {
-      stationNum: Number.isFinite(stationNum) ? stationNum : undefined,
-      clients,
+      stationNum: Number.isFinite(stationNum) ? stationNum : 0,
       hostName,
+      clients,
       raw: data,
     });
   }
 
   // =========================================================
-  // Network Settings - Access Point (ALL MESSAGES LIVE HERE)
+  // Network Settings - READ/WRITE (ALL MESSAGES LIVE HERE)
   // =========================================================
   networkApReadAll() {
     return this.sendJSON({
@@ -278,9 +315,6 @@ class WSConnection {
     });
   }
 
-  // =========================================================
-  // Network Settings - Station
-  // =========================================================
   networkStaReadAll() {
     return this.sendJSON({
       setting: "device",
@@ -304,9 +338,6 @@ class WSConnection {
     });
   }
 
-  // =========================================================
-  // Network Settings - Security
-  // =========================================================
   networkSecurityRead() {
     return this.sendJSON({
       setting: "device",
@@ -323,9 +354,7 @@ class WSConnection {
     });
   }
 
-  // =========================================================
   // Commands used in Network Settings
-  // =========================================================
   pushButtonConfig() {
     return this.sendJSON({
       setting: "command",
@@ -342,58 +371,77 @@ class WSConnection {
     });
   }
 
-  // =========================================================
   // Network Settings inbound router
-  // =========================================================
   _handleNetworkSettingsInbound(data) {
     if (!data || typeof data !== "object") return;
 
-    // Read responses
-    const apKeys = [
-      "AP SSID", "AP Pre-Shared Key", "Ssid Hidden", "AP IPv4", "AP IPv6", "AP Port", "AP HostName",
-      "Wifi Channel", "Max Connection", "AP MAC", "Gateway", "Subnet", "Primary DNS", "Secondary DNS"
-    ];
-    const staKeys = ["Modem SSID", "Modem Pre-Shared Key", "STA HostName", "Modem IP", "Modem MAC", "STA MAC"];
-    const secKeys = ["username", "password"];
-
-    const hasAny = (keys) => keys.some(k => k in data);
-
-    if (hasAny(apKeys)) {
-      this._emit("net-ap:read", { raw: data });
-      return;
-    }
-    if (hasAny(staKeys)) {
-      this._emit("net-sta:read", { raw: data });
-      return;
-    }
-    if (hasAny(secKeys)) {
-      this._emit("net-sec:read", { raw: data });
-      return;
-    }
-
-    // Write ACK / Error
+    // acks
     if (data.error === false && typeof data.message === "string") {
-      if (data.message === "Device settings saved") {
-        this._emit("device:settings:saved", { message: data.message, raw: data });
-      }
+      this._emit("device:settings:saved", data);
+      return;
+    }
+    if (data.error === true && typeof data.message === "string") {
+      this._emit("device:settings:error", data);
       return;
     }
 
-    if (data.error === true && typeof data.message === "string") {
-      this._emit("device:settings:error", { message: data.message, raw: data });
+    const hasAP =
+      ("AP SSID" in data) ||
+      ("AP Pre-Shared Key" in data) ||
+      ("Ssid Hidden" in data) ||
+      ("AP IPv4" in data) ||
+      ("AP IPv6" in data) ||
+      ("AP Port" in data) ||
+      ("AP HostName" in data) ||
+      ("Wifi Channel" in data) ||
+      ("Max Connection" in data) ||
+      ("AP MAC" in data) ||
+      ("Gateway" in data) ||
+      ("Subnet" in data) ||
+      ("Primary DNS" in data) ||
+      ("Secondary DNS" in data);
+
+    if (hasAP) {
+      this._emit("net-ap:read", data);
+      return;
+    }
+
+    const hasSTA =
+      ("Modem SSID" in data) ||
+      ("Modem Pre-Shared Key" in data) ||
+      ("STA HostName" in data) ||
+      ("Modem IP" in data) ||
+      ("Modem MAC" in data) ||
+      ("STA MAC" in data);
+
+    if (hasSTA) {
+      this._emit("net-sta:read", data);
+      return;
+    }
+
+    const hasSEC =
+      ("username" in data) ||
+      ("password" in data);
+
+    if (hasSEC) {
+      this._emit("net-sec:read", data);
       return;
     }
   }
 
-
   // =========================================================
-  // Remote Scan API (ALL MESSAGES LIVE HERE)
+  // Remote Scan (already used in your UI)
   // =========================================================
   remoteScanRead() {
     return this.sendJSON({
       setting: "user",
       action: "read",
-      fields: ["RF_SCAN_START_MHZ", "RF_SCAN_END_MHZ", "RF_SCAN_STEP_MHZ", "RF_SCAN_DWELL_MS"],
+      fields: [
+        "RF_SCAN_START_MHZ",
+        "RF_SCAN_END_MHZ",
+        "RF_SCAN_STEP_MHZ",
+        "RF_SCAN_DWELL_MS",
+      ],
     });
   }
 
@@ -446,31 +494,12 @@ class WSConnection {
           this._remoteScan.pendingStartAfterWrite = false;
           this.remoteScanCommandStart();
         }
-        return;
-      }
-
-      if (data.message === "Band scan requested") {
-        this._remoteScan.active = true;
-        this._emit("remote-scan:start", data);
-        return;
-      }
-
-      return;
-    }
-
-    if (typeof data.type !== "string") return;
-
-    if (data.type === "band_scan.progress") {
-      this._emit("remote-scan:progress", data);
-      if ((data.progress ?? 0) >= 100) {
-        this._remoteScan.active = false;
-        this._emit("remote-scan:done", { progress: 100 });
       }
       return;
     }
 
-    if (data.type === "user.band_scan.found") {
-      this._emit("remote-scan:found", data);
+    if (data.type === "user.band_scan.status") {
+      this._emit("remote-scan:status", data);
       return;
     }
 

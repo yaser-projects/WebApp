@@ -1,6 +1,6 @@
 "use strict";
 
-const STORE_KEY = "ui_objects_v1";
+const STORE_KEY = "dashboard_objects_v1";
 
 // IMPORTANT: if your UI filename is different, change it here:
 const USER_INTERFACE_PAGE = "dashboard.html";

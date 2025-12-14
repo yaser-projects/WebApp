@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * User Interface list data (local demo).
+ * Dashboard list data (local demo).
  * Replace this later with real data source (WebSocket, API, etc.).
  */
 
@@ -108,8 +108,12 @@ function render(list) {
 }
 
 function setConnectionStatus(isConnected) {
+  // NOTE: IDs in HTML are: dashboardStatusText + dashboardDot
   const text = document.getElementById("dashboardStatusText");
   const dot = document.getElementById("dashboardDot");
+
+  // If markup changes or elements are missing, don't crash the whole dashboard.
+  if (!text || !dot) return;
 
   if (isConnected) {
     text.textContent = "Ready";
