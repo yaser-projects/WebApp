@@ -1,28 +1,24 @@
 // ============================================
 // Metal Brain - Shared WebSocket Module
 // ============================================
-// Handles WebSocket connections with automatic endpoint detection
-// Works in local, LAN, and server environments without manual configuration
+// All WebSocket JSON messages MUST live here.
 //
-// UPDATE (Remote Scan integration):
-// - All Remote Scan protocol messages (read/write/command + progress/found/hit) are handled here.
-// - This module dispatches UI-friendly events for pages to consume.
-//   Events:
-//     - ws-status                 { connected: boolean, url?: string }
-//     - ws-message                (all JSON messages) { ... }
-//     - remote-scan:read          { RF_SCAN_* ... }
-//     - remote-scan:ack           { error:false, message:string }
-//     - remote-scan:start         { message:"Band scan requested" }
-//     - remote-scan:progress      { type:"band_scan.progress", ... }
-//     - remote-scan:found         { type:"user.band_scan.found", ... }
-//     - remote-scan:hit           { type:"user.band_scan.hit", ... }
-//     - remote-scan:done          { progress:100 }
+// Events dispatched on window:
+//   - ws-status              { connected:boolean, url?:string, error?:boolean }
+//   - ws-message             (all JSON messages)
 //
-// Pages (e.g., remuteScan.js) MUST NOT build/send JSON for Remote Scan; they call ws.remoteScanStart()/Read() instead.
+// Remote Scan events:
+//   - remote-scan:read       { RF_SCAN_* ... }
+//   - remote-scan:ack        { error:false, message:string }
+//   - remote-scan:start      { message:"Band scan requested" }
+//   - remote-scan:progress   { type:"band_scan.progress", ... }
+//   - remote-scan:found      { type:"user.band_scan.found", ... }
+//   - remote-scan:hit        { type:"user.band_scan.hit", ... }
+//   - remote-scan:done       { progress:100 }
+//
+// Device Info (About) events:
+//   - device:info            { info: string[], raw: object }
 
-/**
- * Configuration for WebSocket connection
- */
 const WS_CONFIG = {
   FALLBACK_HOST: "192.168.1.2",
   WS_PORT: "",
@@ -71,7 +67,7 @@ class WSConnection {
     this.shouldReconnect = true;
     this.isConnecting = false;
 
-    // Remote Scan state (kept inside ws.js as requested)
+    // Remote Scan state
     this._remoteScan = {
       pendingStartAfterWrite: false,
       active: false,
@@ -118,13 +114,16 @@ class WSConnection {
         return;
       }
 
-      // broadcast (all pages can listen if needed)
+      // broadcast raw JSON
       this._emit("ws-message", data);
 
-      // Remote Scan protocol (central)
+      // Device Info (About)
+      this._handleDeviceInfoInbound(data);
+
+      // Remote Scan protocol
       this._handleRemoteScanInbound(data);
 
-      // keep original behavior
+      // user handlers
       this.handlers.onJSON?.(data, this);
     };
 
@@ -199,9 +198,28 @@ class WSConnection {
   }
 
   // =========================================================
+  // Device Info (About) API (MESSAGE LIVES HERE)
+  // =========================================================
+  deviceInfoRead() {
+    return this.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: ["Device Info"],
+    });
+  }
+
+  _handleDeviceInfoInbound(data) {
+    if (!data || typeof data !== "object") return;
+
+    const info = data["Device Info"];
+    if (Array.isArray(info)) {
+      this._emit("device:info", { info, raw: data });
+    }
+  }
+
+  // =========================================================
   // Remote Scan API (ALL MESSAGES LIVE HERE)
   // =========================================================
-
   remoteScanRead() {
     return this.sendJSON({
       setting: "user",
@@ -240,7 +258,6 @@ class WSConnection {
   _handleRemoteScanInbound(data) {
     if (!data || typeof data !== "object") return;
 
-    // READ response (no "type", just RF_SCAN_* fields)
     const hasRead =
       ("RF_SCAN_START_MHZ" in data) &&
       ("RF_SCAN_END_MHZ" in data) &&
@@ -252,7 +269,6 @@ class WSConnection {
       return;
     }
 
-    // ACKs
     if (data.error === false && typeof data.message === "string") {
       this._emit("remote-scan:ack", data);
 
@@ -273,7 +289,6 @@ class WSConnection {
       return;
     }
 
-    // Stream messages
     if (typeof data.type !== "string") return;
 
     if (data.type === "band_scan.progress") {
