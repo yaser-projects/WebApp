@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Device</title>
+  <link rel="stylesheet" href="EditDevice.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card" aria-label="Edit device form">
+      <header class="card__header">
+        <button class="icon-btn" id="backBtn" type="button" aria-label="Back to Dashboard" title="Back">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="header__text">
+          <div class="title-row">
+            <h1 class="title">Edit Device</h1>
+          </div>
+          <p class="subtitle">edit existing device • stored locally</p>
+        </div>
+
+        <div class="status" title="Status">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="status__label">Ready</span>
+        </div>
+      </header>
+
+      <div class="alert" id="alert" role="alert" hidden></div>
+
+      <form id="editForm" class="form" novalidate>
+        <div class="field">
+          <label class="label" for="deviceName">Device Name</label>
+          <input class="input" id="deviceName" name="deviceName" type="text" placeholder="Sample name" minlength="2" maxlength="40" autocomplete="off" required />
+          <div class="help">Minimum 2 characters.</div>
+          <div class="error" id="errName" aria-live="polite"></div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label class="label" for="frequency">Frequency</label>
+            <div class="input-suffix">
+              <input class="input" id="frequency" name="frequency" inputmode="decimal" placeholder="Enter frequency" />
+              <span class="suffix">MHz</span>
+            </div>
+            <div class="error" id="errFreq" aria-live="polite"></div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="modulation">Modulation</label>
+            <select class="select" id="modulation" name="modulation">
+              <option value="OOK">OOK</option>
+              <option value="ASK">ASK</option>
+              <option value="FSK">FSK</option>
+              <option value="GFSK">GFSK</option>
+              <option value="MSK">MSK</option>
+              <option value="2-FSK">2-FSK</option>
+              <option value="4-FSK">4-FSK</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="bitCount">Bit count</label>
+            <input class="input" id="bitCount" name="bitCount" inputmode="numeric" placeholder="Enter bit count" />
+            <div class="error" id="errBits" aria-live="polite"></div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="code">Code</label>
+            <input class="input" id="code" name="code" type="text" placeholder="Enter code" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="delay">Delay</label>
+          <div class="input-suffix">
+            <input class="input" id="delay" name="delay" inputmode="numeric" placeholder="Enter delay" />
+            <span class="suffix">ms</span>
+          </div>
+          <div class="error" id="errDelay" aria-live="polite"></div>
+        </div>
+
+        <button class="btn" id="saveBtn" type="submit">Save Changes</button>
+
+        <footer class="card__footer">Edit Device • minimal form • back returns to dashboard</footer>
+      </form>
+    </section>
+  </main>
+
+  <script src="EditDevice.js"></script>
+</body>
+</html>
