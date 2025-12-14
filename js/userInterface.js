@@ -14,8 +14,9 @@ const DEVICES_PAGE = "addDevice.html";
 const ROUTES = {
   about: "about.html",
   status: "status.html",
-  network: "networksetting.html" // اگر اسم فایل صفحه نتورک فرق دارد همین را عوض کن
+  network: "networksettings.html"
 };
+
 
 function escapeHtml(str) {
   return String(str)

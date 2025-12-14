@@ -1,6 +1,9 @@
 "use strict";
 
-import { connectWebSocket } from "./JS/ws.js";
+// NOTE: networksettings.js lives in /js and ws.js is also in /js.
+// The old path "./JS/ws.js" breaks on case-sensitive systems and prevents
+// the whole page (accordion/back button) from working.
+import { connectWebSocket } from "./ws.js";
 
 /* ---------------------------
    helpers: format/parse
@@ -571,7 +574,8 @@ function setupBack() {
     if (!ok) return;
 
     if (ws?.isConnected) ws.pushButtonConfig();
-    window.location.href = "dashboard.html";
+    // Dashboard page in this project is userInterface.html
+    window.location.href = "userInterface.html";
   });
 }
 
