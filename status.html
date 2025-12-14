@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Status - Metal Brain</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="centralManager.js"></script>
+  <script src="status.js"></script>
+  <link rel="stylesheet" href="background-style.css">
+  <link rel="stylesheet" href="status.css">
+  <link rel="stylesheet" href="fontawesome-custom.min.css">
+</head>
+
+<body>
+  <section class="background">
+    <span style="--i:1"></span>
+    <span style="--i:2"></span>
+    <span style="--i:3"></span>
+    <span style="--i:4"></span>
+  </section>
+
+  <div class="top-bar">
+    <span id="status-back" class="back-icon fas fa-arrow-left" title="Back"></span>
+  </div>
+  <div class="status-wrapper">
+    <div class="status-table-block">
+      <h3 class="status-table-title">
+        Active DHCP Clients (<span id="device-count">0</span> devices connected)
+      </h3>
+      <fieldset>
+        <table class="status-table" id="dhcp-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>IP Address</th>
+              <th>MAC Address</th>
+              <th>AP HostName</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" style="text-align:center; color:#0ff;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </fieldset>
+      <div class="status-table-buttons">
+        <button class="status-refresh" id="status-refresh" title="Refresh List">
+          <i class="fas fa-rotate"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

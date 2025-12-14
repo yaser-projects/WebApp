@@ -1,0 +1,134 @@
+.status-wrapper {
+  max-width: 520px;
+  width: 99vw;
+  margin: 42px auto 22px auto;
+  background: rgba(0,0,0,0.19);
+  border-radius: 16px;
+  box-shadow: 0 0 22px #00e0ff44;
+  padding: 30px 10px 18px 10px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.status-table-block {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(0,255,255,0.07);
+  border-radius: 10px;
+  padding: 18px 8px 12px 8px;
+  box-shadow: 0 0 12px #0ff1;
+}
+
+.status-table-title {
+  color: #0ff;
+  font-size: 1.13rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  letter-spacing: 0.2px;
+  text-align: center;
+  text-shadow: 0 0 8px #0ff7;
+}
+
+.status-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto 4px auto;
+  font-size: 0.99rem;
+  background: none;
+}
+
+.status-table th,
+.status-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #00e5ff19;
+  text-align: left;
+}
+.status-table th {
+  background: rgba(0,255,255,0.08);
+  color: #0ff;
+  font-weight: 700;
+}
+.status-table tr:last-child td {
+  border-bottom: none;
+}
+.status-table td {
+  color: #fff;
+  font-weight: 400;
+}
+
+/* دکمه‌های پایین جدول */
+.status-table-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  gap: 20px;
+  width: 100%;
+}
+
+/* استایل مشترک برای دکمه‌ها */
+.status-back,
+.status-refresh {
+  background: rgba(0,255,255,0.07);
+  border: 1.5px solid #0ff;
+  color: #0ff;
+  padding: 9px 24px;
+  border-radius: 12px;
+  font-size: 1.08rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 0 8px #0ff3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s, color 0.13s, border 0.16s;
+  min-width: 130px;    /* <-- دکمه‌ها هم‌اندازه میشن، مقدارشو به دلخواه تغییر بده */
+  justify-content: center;
+}
+.status-back i,
+.status-refresh i {
+  font-size: 1.2rem;
+}
+.status-back:hover,
+.status-refresh:hover {
+  background: rgba(0,255,255,0.13);
+  color: #fff;
+  border-color: #fff;
+}
+
+/* تفاوت دکمه‌ها در جای دیگه تعریف نکن! */
+
+@media (max-width: 700px) {
+  .status-wrapper, .status-table-block {
+    max-width: 98vw;
+    padding: 12px 1vw 11px 1vw;
+  }
+  .status-table th, .status-table td {
+    font-size: 0.93rem;
+    padding: 7px 5px;
+  }
+  .status-table-title {
+    font-size: 1.02rem;
+    padding-bottom: 7px;
+  }
+  .status-back, .status-refresh {
+    font-size: 0.98rem;
+    padding: 8px 14px;
+    gap: 6px;
+    min-width: 90px;
+  }
+}
+
+.status-table-block fieldset {
+  border: 1.2px solid #13e6f9;      /* خط آبی سایان نازک */
+  border-radius: 12px;              /* گوشه‌ها نیمه‌گرد */
+  background: rgba(0,255,255,0.06); /* بکگراند بسیار ملایم آبی */
+  box-shadow: 0 0 8px #00f0ff13;
+  padding: 7px 12px 7px 12px;
+  margin-bottom: 16px;
+  transition: border-color 0.18s;
+}
+

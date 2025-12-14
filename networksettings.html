@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Network Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="fontawesome-custom.min.css">
+  <link rel="stylesheet" href="background-style.css">
+  <link rel="stylesheet" href="networksettings.css">
+</head>
+
+<body>
+  <!-- Animated Background -->
+  <section class="background">
+    <span style="--i:1"></span>
+    <span style="--i:2"></span>
+    <span style="--i:3"></span>
+    <span style="--i:4"></span>
+  </section>
+
+  <div class="top-bar">
+    <div class="back-icon">
+      <i class="fas fa-arrow-left"></i>
+    </div>
+  </div>
+
+  <div class="network-wrapper">
+
+    <!-- Access Point Accordion -->
+    <div class="dropdown-container active" id="section-ap">
+      <button class="dropdown-btn"><i class="fas fa-wifi"></i> Access Point</button>
+      <div class="dropdown-content">
+        <fieldset class="fieldset wireless">
+          <legend>Wireless Security Settings</legend>
+          <label for="ap-wifiChannel">WiFi Channel</label>
+          <div class="input-icon">
+            <i class="fas fa-wifi"></i>
+            <select id="ap-wifiChannel">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+              <option value="11">11</option>
+              <option value="12">12</option>
+              <option value="13">13</option>
+            </select>
+          </div>
+
+          <!-- ✅ Hidden SSID -->
+          <div class="checkbox-icon">
+            <i class="fas fa-eye-slash"></i>
+            <span>Hidden SSID</span>
+            <input type="checkbox" id="ap-ssidHidden">
+          </div>
+
+
+          <label for="ap-ssid">SSID</label>
+          <div class="input-icon">
+            <i class="fas fa-wifi"></i>
+            <input type="text" id="ap-ssid" maxlength="33" minlength="1" placeholder="Enter SSID (1-32)"
+              autocomplete="off">
+          </div>
+          <label for="ap-preSharedKey">Pre-Shared Key</label>
+          <div class="input-icon">
+            <i class="fas fa-key"></i>
+            <input type="text" id="ap-preSharedKey" maxlength="65" minlength="8" placeholder="Password (8-64)"
+              autocomplete="off">
+          </div>
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend>IP & Host Settings</legend>
+          <label for="ap-hostname">Host Name</label>
+          <div class="input-icon">
+            <i class="fas fa-server"></i>
+            <input type="text" id="ap-hostname" maxlength="17" minlength="1" placeholder="HostName (1-16)"
+              autocomplete="off">
+          </div>
+          <!-- IPv4 -->
+          <label>
+            <input type="radio" id="ap-ipmode4" name="ap-ipmode" checked>
+            IPv4
+          </label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-ipv4" maxlength="15" placeholder="192.168.1.1" autocomplete="off">
+          </div>
+          <!-- IPv6 -->
+          <label>
+            <input type="radio" id="ap-ipmode6" name="ap-ipmode">
+            IPv6
+          </label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-ipv6" maxlength="39" placeholder="2001:db8::1" autocomplete="off">
+          </div>
+          <label for="ap-port">Port</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-port" maxlength="5" placeholder="Port (0-65535)" autocomplete="off">
+          </div>
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend>Channel & Connection</legend>
+          <!-- ✅ Max Connections -->
+          <label for="ap-maxConnection">Max Connections</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <select id="ap-maxConnection">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <label for="ap-macaddress">MAC Address</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-macaddress" placeholder="A1:B2:C3:D4:E5:F6" readonly tabindex="-1"
+              style="user-select: all;">
+          </div>
+        </fieldset>
+        <fieldset class="fieldset">
+          <legend>Network Settings</legend>
+          <label for="ap-gateway">Gateway</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-gateway" maxlength="15" placeholder="192.168.1.1" autocomplete="off">
+          </div>
+          <label for="ap-subnet">Subnet</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="ap-subnet" maxlength="15" placeholder="255.255.255.0" autocomplete="off">
+          </div>
+          <label for="ap-dns1">Primary DNS</label>
+          <div class="input-icon">
+            <i class="fas fa-globe"></i>
+            <input type="text" id="ap-dns1" maxlength="15" placeholder="8.8.8.8" autocomplete="off">
+          </div>
+          <label for="ap-dns2">Secondary DNS</label>
+          <div class="input-icon">
+            <i class="fas fa-globe"></i>
+            <input type="text" id="ap-dns2" maxlength="15" placeholder="8.8.4.4" autocomplete="off">
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Station Accordion -->
+    <div class="dropdown-container" id="section-station">
+      <button class="dropdown-btn"><i class="fas fa-network-wired"></i> Station</button>
+      <div class="dropdown-content">
+        <fieldset class="fieldset wireless">
+          <label for="st-ssid">SSID</label>
+          <div class="input-icon">
+            <i class="fas fa-wifi"></i>
+            <input type="text" id="st-ssid" maxlength="33" minlength="1" placeholder="SSID (1-32)" autocomplete="off">
+          </div>
+          <span id="st-ssid-error" class="error-message"></span>
+
+          <label for="st-key">Pre-Shared Key</label>
+          <div class="input-icon">
+            <i class="fas fa-key"></i>
+            <input type="text" id="st-key" maxlength="65" minlength="1" placeholder="Pre-Shared Key (1-64)"
+              autocomplete="off">
+          </div>
+          <span id="st-key-error" class="error-message"></span>
+
+          <label for="st-hostname">Host Name</label>
+          <div class="input-icon">
+            <i class="fas fa-server"></i>
+            <input type="text" id="st-hostname" maxlength="17" minlength="1" placeholder="HostName (1-16)"
+              autocomplete="off">
+          </div>
+          <span id="st-hostname-error" class="error-message"></span>
+
+          <label for="st-ip">IP Address</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="st-ip" maxlength="15" placeholder="xxx.xxx.xxx.xxx" readonly tabindex="-1"
+              style="user-select: all;">
+          </div>
+          <label for="st-macaddress">MAC Address</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="st-macaddress" placeholder="A1:B2:C3:D4:E5:F6" readonly tabindex="-1"
+              style="user-select: all;">
+          </div>
+          <label for="st-modemmac">Modem MAC Address</label>
+          <div class="input-icon">
+            <i class="fas fa-network-wired"></i>
+            <input type="text" id="st-modemmac" placeholder="A1:B2:C3:D4:E5:F6" readonly tabindex="-1"
+              style="user-select: all;">
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Security Accordion -->
+    <div class="dropdown-container" id="section-security">
+      <button class="dropdown-btn"><i class="fas fa-lock"></i> Security</button>
+      <div class="dropdown-content">
+        <fieldset class="fieldset">
+          <label for="sec-username">Username</label>
+          <div class="input-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" id="sec-username" maxlength="17" minlength="1" placeholder="Username (1-16)"
+              autocomplete="off">
+          </div>
+          <span id="sec-username-error" class="error-message"></span>
+
+          <label for="sec-password">Password</label>
+          <div class="input-icon">
+            <i class="fas fa-key"></i>
+            <input type="text" id="sec-password" maxlength="17" minlength="1" placeholder="Password (1-16)"
+              autocomplete="off">
+          </div>
+          <span id="sec-password-error" class="error-message"></span>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- Reset Factory Accordion -->
+    <div class="dropdown-container" id="section-reset">
+      <button class="dropdown-btn"><i class="fas fa-rotate"></i> Reset Factory</button>
+      <div class="dropdown-content">
+        <fieldset class="fieldset">
+          <div class="reset-factory-content">
+            <div class="reset-circle" id="reset-circle">
+              <svg class="reset-progress">
+                <circle class="reset-bg" cx="55" cy="55" r="50"></circle>
+                <circle class="reset-bar" cx="55" cy="55" r="50"></circle>
+              </svg>
+              <span class="reset-number" id="reset-number">7</span>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <script src="centralManager.js"></script>
+  <script src="networksettings.js"></script>
+</body>
+
+</html>

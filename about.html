@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>About</title>
+  <link rel="stylesheet" href="CSS/about.css" />
+</head>
+
+<body>
+  <main class="wrap">
+    <section class="panel" aria-label="About">
+
+      <header class="hero">
+        <h1 class="brand">METAL BRAIN</h1>
+        <p class="desc">
+          Metal Brain is a professional, modular embedded and web UI system for configuring and monitoring devices,
+          designed for ESP32 &amp; FPGA based boards.
+        </p>
+      </header>
+
+      <section class="card infoCard" aria-label="Device Info">
+        <div class="rows" role="table" aria-label="Device information table">
+          <div class="row" role="row">
+            <div class="k" role="cell">Manufacturer</div>
+            <div class="v" role="cell" id="vManufacturer">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Device Name</div>
+            <div class="v" role="cell" id="vDeviceName">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Model Number</div>
+            <div class="v" role="cell" id="vModelNumber">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Device Model</div>
+            <div class="v" role="cell" id="vDeviceModel">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Production Date</div>
+            <div class="v" role="cell" id="vProductionDate">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Serial Number</div>
+            <div class="v" role="cell" id="vSerialNumber">-</div>
+          </div>
+          <div class="row" role="row">
+            <div class="k" role="cell">Firmware Version</div>
+            <div class="v" role="cell" id="vFirmwareVersion">-</div>
+          </div>
+        </div>
+
+        <div class="readState" id="readState">Reading device info...</div>
+      </section>
+
+      <section class="card" aria-label="License">
+        <div class="blockTitle">License:</div>
+        <div class="blockText">
+          This software is exclusively developed and owned by Metal Brain.<br/>
+          All design and commercial rights reserved by Yaser Rashnabadi (Metal Brain).<br/>
+          Copyright © 2025 Yaser Rashnabadi – Metal Brain. All rights reserved.
+        </div>
+      </section>
+
+      <section class="card" aria-label="Developer">
+        <div class="blockTitle">Developer:</div>
+        <div class="blockText">
+          Yaser Rashnabadi &amp; Metal Brain Team<br/>
+          <span class="accent">yaser@example.com</span> &nbsp;|&nbsp; Telegram: <span class="accent">@MetalBrain</span>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button class="btn" id="btnUpdate" type="button">Update</button>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="JS/about.js"></script>
+</body>
+</html>

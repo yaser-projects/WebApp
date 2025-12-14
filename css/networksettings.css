@@ -1,0 +1,327 @@
+/* ✅ کنترل عرض و فاصله داخلی فرم در دسکتاپ */
+.network-wrapper {
+  max-width: 520px;
+  width: 95%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* ✅ جلوگیری کامل از اسکرول افقی در همه‌جا */
+body,
+html,
+.dropdown-container,
+fieldset {
+  max-width: 100%;
+  overflow-x: hidden !important;
+  box-sizing: border-box;
+}
+
+
+/* 🔻 آکاردیون‌ها */
+.dropdown-container {
+  width: 100%;
+  height: auto;
+  max-width: 570px;
+  background: rgba(0, 255, 255, 0.10);
+  border-radius: 9px;
+  margin-bottom: 10px;
+  box-shadow: 0 0 10px #0ff2;
+  transition: box-shadow 0.17s, background 0.15s;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  position: relative;
+}
+
+.dropdown-container.active {
+  background: rgba(0, 255, 255, 0.18);
+  border-color: #0ff;
+  box-shadow: 0 0 22px #00eaff80;
+  z-index: 2;
+}
+
+.dropdown-container:not(.active) {
+  height: auto;
+  padding-bottom: 0 !important;
+  box-shadow: none;
+}
+
+.dropdown-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #0ff;
+  font-size: 1.13rem;
+  font-weight: 700;
+  text-align: left;
+  padding: 26px 20px 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: color 0.14s;
+}
+
+.dropdown-btn i {
+  font-size: 1.3rem;
+  margin-right: 4px;
+}
+
+
+/* 🎯 محتوای آکاردیون */
+.dropdown-container:not(.active) .dropdown-content {
+  display: none;
+}
+
+.dropdown-content {
+  animation: fadeIn 0.2s;
+  padding: 10px 7px 7px 7px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* 📑 ساختار ورودی‌ها */
+.input-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 0 12px;
+  margin-bottom: 6px;
+  border: 1.1px solid #0ff2;
+  transition: border 0.15s, background 0.13s;
+}
+
+.input-icon:focus-within {
+  border-color: #0ff;
+  background: rgba(0, 255, 255, 0.06);
+}
+
+.input-icon i {
+  color: #0ff;
+  font-size: 1.15rem;
+}
+
+.input-icon input,
+.input-icon select {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #0ff;
+  font-size: 1.04rem;
+  flex: 1 1 0;
+  padding: 11px 0;
+  background-color: transparent !important;
+}
+
+.input-icon input:focus,
+.input-icon select:focus {
+  color: #fff;
+}
+
+.input-icon select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+
+/* ✅ چک‌باکس‌ها */
+.checkbox-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  padding: 11px 12px;
+  margin-bottom: 6px;
+  border: 1.1px solid #0ff2;
+  transition: border 0.15s, background 0.13s;
+  cursor: pointer;
+  color: #0ff;
+  font-size: 1.04rem;
+  font-weight: 500;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.checkbox-icon:hover {
+  background: rgba(0, 255, 255, 0.06);
+  border-color: #0ff;
+}
+
+.checkbox-icon input[type="checkbox"] {
+  margin: 0;
+  accent-color: #0ff;
+  transform: scale(1.1);
+  cursor: pointer;
+}
+
+.checkbox-icon i {
+  font-size: 1.1rem;
+  color: #0ff;
+}
+
+.checkbox-icon span {
+  user-select: none;
+}
+
+
+/* ❌ وضعیت خطا */
+.input-icon.error {
+  border: 2px solid #dc2626 !important;
+  box-shadow: 0 0 9px #dc262699;
+  background: rgba(255, 0, 0, 0.10);
+}
+
+.error-message {
+  color: #e26a08;
+  font-size: 12px;
+  margin-top: -2px;
+  margin-bottom: 10px;
+  padding-left: 8px;
+  display: block;
+  min-height: 16px;
+}
+
+
+/* 📱 ریسپانسیو مطمئن */
+@media (max-width: 700px) {
+  .network-wrapper,
+  .dropdown-container,
+  fieldset {
+    padding-left: 4vw;
+    padding-right: 4vw;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .dropdown-btn {
+    font-size: 0.92rem;
+    padding: 24px 16px 22px 16px;
+    gap: 6px;
+  }
+
+  .dropdown-btn i {
+    font-size: 1rem;
+  }
+
+  .input-icon input,
+  .input-icon select {
+    font-size: 0.97rem;
+    padding: 9px 0;
+  }
+}
+
+
+/* 🎨 انتخاب‌ها */
+select {
+  background-color: rgba(0, 255, 255, 0.05) !important;
+  color: #0ff;
+}
+
+option {
+  background-color: #001c1f;
+  color: #0ff;
+}
+
+
+/* 🧩 Placeholder */
+::-webkit-input-placeholder { color: #72f0ff99; }
+::-moz-placeholder { color: #72f0ff99; opacity: 1; }
+:-ms-input-placeholder { color: #72f0ff99; }
+::-ms-input-placeholder { color: #72f0ff99; }
+
+
+/* 🔄 ریست فکتوری */
+.reset-factory-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0;
+}
+
+.reset-circle {
+  width: 110px;
+  height: 110px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.reset-circle:hover {
+  transform: scale(1.05);
+}
+
+.reset-progress {
+  width: 110px;
+  height: 110px;
+  transform: rotate(-90deg);
+}
+
+.reset-progress circle {
+  fill: none;
+  stroke-width: 10;
+  cx: 55;
+  cy: 55;
+  r: 50;
+}
+
+.reset-bg {
+  stroke: rgba(0, 255, 255, 0.1);
+}
+
+.reset-bar {
+  stroke: #00eaff;
+  stroke-dasharray: 314;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.3s linear;
+}
+
+.reset-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 26px;
+  font-weight: bold;
+  color: #0ff;
+  user-select: none;
+}
+
+
+/* ✅ جلوگیری کامل از اسکرول افقی */
+* {
+  max-width: 100vw !important;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  overflow-x: hidden !important;
+}
+
+fieldset,
+.dropdown-container,
+.input-icon,
+.reset-factory-content {
+  overflow-x: hidden;
+  width: 100%;
+}
