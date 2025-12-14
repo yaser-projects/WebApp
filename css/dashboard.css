@@ -358,3 +358,10 @@ svg{
   .bottomNav{ grid-template-columns: 1fr; }
   .navBtn{ justify-content:flex-start; }
 }
+
+/* ✅ Selected item (long-press action mode) */
+.item.selected{
+  border-color: rgba(255,211,106,.35);
+  background: rgba(255,211,106,.10);
+  box-shadow: 0 0 0 3px rgba(255,211,106,.10);
+}

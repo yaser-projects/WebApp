@@ -10,6 +10,17 @@ const STORE_KEY = "dashboard_objects_v1";
 // Change this to your real devices page filename if different:
 const DEVICES_PAGE = "addDevice.html";
 
+// ✅ Device control page (open when user clicks an object)
+const DEVICE_CONTROL_PAGE = "deviceControl.html";
+
+// ✅ Selected object (so deviceControl.html can read it)
+const SELECTED_OBJECT_KEY = "dashboard_selected_object_v1";
+
+// ✅ Long-press to show Edit/Delete actions
+const LONG_PRESS_MS = 1500; // 1.5s
+// Change this to your real edit page filename if different:
+const EDIT_PAGE = "editDevice.html";
+
 // ✅ Bottom navigation routes (change filenames here if yours differ)
 const ROUTES = {
   about: "about.html",
@@ -67,6 +78,85 @@ function tagClass(state) {
   return "";
 }
 
+
+// ===== Long-press Action Mode (Edit / Delete) =====
+let actionMode = false;
+let selectedItemId = null;
+let suppressNextClick = false;
+
+// Cache original header button SVGs to restore later
+let _origSearchBtnHTML = null;
+let _origDevicesBtnHTML = null;
+
+function svgTrash() {
+  return `
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path d="M4 7h16"></path>
+    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+    <path d="M7 7l1 14h8l1-14"></path>
+    <path d="M10 11v6"></path>
+    <path d="M14 11v6"></path>
+  </svg>`;
+}
+
+function svgEdit() {
+  return `
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path d="M12 20h9"></path>
+    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4 11.5-11.5"></path>
+  </svg>`;
+}
+
+function setTopActionsMode(on) {
+  const btnSearch = document.getElementById("btnSearch");
+  const btnDevices = document.getElementById("btnDevices");
+  if (!btnSearch || !btnDevices) return;
+
+  // Remember original markup once
+  if (_origSearchBtnHTML === null) _origSearchBtnHTML = btnSearch.innerHTML;
+  if (_origDevicesBtnHTML === null) _origDevicesBtnHTML = btnDevices.innerHTML;
+
+  if (on) {
+    btnSearch.innerHTML = svgTrash();
+    btnSearch.title = "Delete";
+    btnSearch.setAttribute("aria-label", "Delete");
+
+    btnDevices.innerHTML = svgEdit();
+    btnDevices.title = "Edit";
+    btnDevices.setAttribute("aria-label", "Edit");
+  } else {
+    btnSearch.innerHTML = _origSearchBtnHTML;
+    btnSearch.title = "Search";
+    btnSearch.setAttribute("aria-label", "Search");
+
+    btnDevices.innerHTML = _origDevicesBtnHTML;
+    btnDevices.title = "Add Devices";
+    btnDevices.setAttribute("aria-label", "Devices");
+  }
+}
+
+function enterActionMode(itemId) {
+  actionMode = true;
+  selectedItemId = itemId;
+  setTopActionsMode(true);
+}
+
+function exitActionMode() {
+  actionMode = false;
+  selectedItemId = null;
+  setTopActionsMode(false);
+}
+
+// Remove item by id from localStorage
+function deleteItemById(id) {
+  const list = loadItems();
+  const next = list.filter(x => x.id !== id);
+  saveItems(next);
+  return next;
+}
+
+// ===== /Long-press Action Mode =====
+
 function render(list) {
   const container = document.getElementById("list");
   const countBadge = document.getElementById("countBadge");
@@ -83,7 +173,7 @@ function render(list) {
 
   for (const item of list) {
     const el = document.createElement("div");
-    el.className = "item";
+    el.className = "item" + ((actionMode && selectedItemId === item.id) ? " selected" : "");
     el.innerHTML = `
       <div class="avatar">${escapeHtml(initials(item.name))}</div>
       <div class="meta">
@@ -98,12 +188,64 @@ function render(list) {
       </div>
     `;
 
-    el.addEventListener("click", () => {
-      // Placeholder: open object details later
-      alert(`Object: ${item.name}`);
+    el.addEventListener("click", (ev) => {
+      // If long-press just fired, ignore the following click
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        return;
+      }
+
+      // If we are in action mode, normal tap just changes selection (no navigation)
+      if (actionMode) {
+        selectedItemId = item.id;
+        render(loadItems());
+        return;
+      }
+
+      // Normal behavior: open Device Control
+      try { localStorage.setItem(SELECTED_OBJECT_KEY, JSON.stringify(item)); } catch {}
+      const id = encodeURIComponent(item.id || "");
+      window.location.href = `${DEVICE_CONTROL_PAGE}${id ? `?id=${id}` : ""}`;
     });
 
-    container.appendChild(el);
+    // Long-press (mouse or touch) => enter action mode
+    let pressTimer = null;
+    let startX = 0, startY = 0;
+    const MOVE_TOLERANCE = 10; // px
+
+    const clearPressTimer = () => {
+      if (pressTimer) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+
+    el.addEventListener("pointerdown", (ev) => {
+      // Only primary button for mouse
+      if (ev.pointerType === "mouse" && ev.button !== 0) return;
+
+      startX = ev.clientX;
+      startY = ev.clientY;
+
+      clearPressTimer();
+      pressTimer = setTimeout(() => {
+        suppressNextClick = true; // prevent click navigation after long-press
+        enterActionMode(item.id);
+        render(loadItems());
+        // small haptic-like feedback (visual only)
+        el.classList.add("selected");
+      }, LONG_PRESS_MS);
+    });
+
+    el.addEventListener("pointerup", clearPressTimer);
+    el.addEventListener("pointercancel", clearPressTimer);
+    el.addEventListener("pointerleave", clearPressTimer);
+    el.addEventListener("pointermove", (ev) => {
+      const dx = Math.abs(ev.clientX - startX);
+      const dy = Math.abs(ev.clientY - startY);
+      if (dx > MOVE_TOLERANCE || dy > MOVE_TOLERANCE) clearPressTimer();
+    });
+container.appendChild(el);
   }
 }
 
@@ -178,12 +320,56 @@ function main() {
 
   const searchCtl = setupSearch(allItems);
 
+  // Tap outside the list to exit action mode
+  document.addEventListener("click", (e) => {
+    if (!actionMode) return;
+    const listEl = document.getElementById("list");
+    const pillEl = document.querySelector(".pill");
+    const t = e.target;
+    const insideList = listEl && listEl.contains(t);
+    const insidePill = pillEl && pillEl.contains(t);
+    if (!insideList && !insidePill) {
+      exitActionMode();
+      render(loadItems());
+    }
+  });
+
 document.getElementById("btnSearch").addEventListener("click", () => {
+  // If long-press action mode is active => Delete selected object
+  if (actionMode) {
+    if (!selectedItemId) return;
+    const list = loadItems();
+    const target = list.find(x => x.id === selectedItemId);
+    const label = target?.name ? `“${target.name}”` : "this object";
+    const ok = confirm(`Delete ${label}?`);
+    if (!ok) return;
+
+    const next = deleteItemById(selectedItemId);
+    exitActionMode();
+    render(next);
+    return;
+  }
+
+  // Normal mode => Search toggle
   if (searchCtl.isOpen()) searchCtl.close();
   else searchCtl.open();
 });
 
 document.getElementById("btnDevices").addEventListener("click", () => {
+  // If long-press action mode is active => Edit selected object
+  if (actionMode) {
+    if (!selectedItemId) return;
+    const list = loadItems();
+    const target = list.find(x => x.id === selectedItemId);
+    if (target) {
+      try { localStorage.setItem(SELECTED_OBJECT_KEY, JSON.stringify(target)); } catch {}
+    }
+    const id = encodeURIComponent(selectedItemId || "");
+    window.location.href = `${EDIT_PAGE}${id ? `?id=${id}` : ""}`;
+    return;
+  }
+
+  // Normal mode => Add Devices page
   window.location.href = DEVICES_PAGE;
 });
 
