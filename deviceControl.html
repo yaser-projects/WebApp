@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Remote Control</title>
+  <link rel="stylesheet" href="css/deviceControl.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+
+      <div class="topbar">
+        <div class="back" title="Back" id="btnBack" role="button" aria-label="Back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"
+              stroke="rgba(255,255,255,.85)"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="title-area">
+          <div class="title" id="deviceTitle">Remote Control — Sample name</div>
+          <div class="subtitle">Buttons remute (A / B / C / D)</div>
+        </div>
+
+        <div class="status">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Ready</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <!-- فقط اسم دستگاه -->
+        <div class="device-name" id="deviceNameText">Sample name</div>
+
+        <!-- خط مرزبندی -->
+        <div class="divider" aria-hidden="true"></div>
+
+        <div class="buttons">
+          <button class="rbtn" data-key="A" type="button">A<small>Button</small></button>
+          <button class="rbtn" data-key="B" type="button">B<small>Button</small></button>
+          <button class="rbtn" data-key="C" type="button">C<small>Button</small></button>
+          <button class="rbtn" data-key="D" type="button">D<small>Button</small></button>
+        </div>
+
+        <div class="footer-note">Remote Control • glass UI • circular buttons</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/deviceControl.js"></script>
+</body>
+</html>

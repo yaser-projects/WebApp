@@ -1,0 +1,210 @@
+:root{
+  --bg1:#071a2b;
+  --bg2:#0a2c3f;
+
+  --card: rgba(255,255,255,.06);
+  --stroke: rgba(255,255,255,.10);
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.55);
+
+  --accent: #2fe6b6;
+
+  --btn: rgba(10, 52, 76, .55);
+  --btn2: rgba(10, 52, 76, .80);
+
+  --shadow: 0 18px 55px rgba(0,0,0,.35);
+  --radius: 22px;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  color:var(--text);
+  background:
+    radial-gradient(900px 600px at 50% 25%, rgba(47,230,182,.12), transparent 55%),
+    radial-gradient(800px 500px at 20% 70%, rgba(90,160,255,.10), transparent 55%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.wrap{ width:min(420px, 100%); }
+
+.card{
+  background: linear-gradient(180deg, var(--card), rgba(255,255,255,.04));
+  border:1px solid var(--stroke);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow:hidden;
+  padding:18px 18px 20px;
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 10px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* Back button */
+.back{
+  width:38px; height:38px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition: transform .12s ease, background .12s ease;
+  user-select:none;
+}
+.back:hover{ background: rgba(255,255,255,.07); }
+.back:active{ transform: scale(.97); }
+
+.title-area{ flex:1; min-width:0; }
+.title{
+  font-weight:700;
+  font-size: 16px;
+  line-height: 1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.subtitle{
+  margin-top:2px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  color: var(--muted);
+  white-space:nowrap;
+}
+.dot{
+  width:10px; height:10px;
+  border-radius:50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47,230,182,.12);
+}
+
+/* Content */
+.section{
+  margin-top: 16px;
+  padding: 8px 6px 0;
+}
+
+/* فقط اسم دستگاه */
+.device-name{
+  margin-top: 10px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: .2px;
+  color: rgba(255,255,255,.92);
+}
+
+/* خط جداکننده */
+.divider{
+  margin: 12px 8px 6px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+  border-radius: 999px;
+}
+
+/* Buttons grid */
+.buttons{
+  margin-top: 18px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 6px;
+}
+
+.rbtn{
+  position:relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(120px 120px at 35% 25%, rgba(255,255,255,.10), transparent 55%),
+    linear-gradient(180deg, var(--btn2), var(--btn));
+  box-shadow:
+    0 14px 30px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  color: rgba(255,255,255,.92);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  transition: transform .10s ease, filter .15s ease, border-color .15s ease;
+  user-select:none;
+  overflow:hidden;
+}
+
+.rbtn:hover{
+  filter: brightness(1.04);
+  border-color: rgba(255,255,255,.18);
+}
+.rbtn:active{
+  transform: scale(.98);
+  filter: brightness(.98);
+}
+
+.rbtn small{
+  display:block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.55);
+  letter-spacing: 0;
+}
+
+/* Ripple effect */
+.ripple{
+  position:absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(47,230,182,.25);
+  animation: ripple .55s ease-out forwards;
+  pointer-events:none;
+  filter: blur(.2px);
+}
+
+@keyframes ripple{
+  from{ opacity: .9; scale: .5; }
+  to{ opacity: 0; scale: 12; }
+}
+
+.footer-note{
+  margin-top: 14px;
+  text-align:center;
+  font-size: 11px;
+  color: rgba(255,255,255,.40);
+}
+
+@media (max-width: 360px){
+  .rbtn{ font-size: 22px; }
+  .buttons{ gap: 12px; }
+}
