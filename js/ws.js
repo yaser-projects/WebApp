@@ -95,16 +95,28 @@ class WSConnection {
   }
 
   _emit(eventName, payload) {
+    // 1) emit داخلی (مثل قبل)
     const set = this._events.get(eventName);
-    if (!set) return;
-    for (const cb of set) {
-      try {
-        cb(payload);
-      } catch (e) {
-        console.error(`[WS] listener error for ${eventName}:`, e);
+    if (set) {
+      for (const cb of set) {
+        try {
+          cb(payload);
+        } catch (e) {
+          console.error(`[WS] listener error for ${eventName}:`, e);
+        }
       }
     }
+
+    // 2) emit روی window برای فایل‌هایی مثل about.js که window.addEventListener دارند
+    try {
+      if (typeof window !== "undefined" && window?.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent(eventName, { detail: payload }));
+      }
+    } catch (e) {
+      console.warn(`[WS] window dispatch failed for ${eventName}:`, e);
+    }
   }
+
 
   connect() {
     if (this.isConnecting || this.isConnected) return;
@@ -144,7 +156,7 @@ class WSConnection {
       if (!this.isConnected) {
         try {
           ws.close();
-        } catch {}
+        } catch { }
         this._connectNext();
       }
     }, WS_CONFIG.CONNECT_TIMEOUT);
@@ -202,7 +214,7 @@ class WSConnection {
   close() {
     try {
       this.ws?.close();
-    } catch {}
+    } catch { }
   }
 
   sendJSON(obj) {
@@ -234,13 +246,33 @@ class WSConnection {
   }
 
   _handleDeviceInfoInbound(data) {
-    if (!data || typeof data !== "object") return;
-
-    const info = data["Device Info"];
-    if (Array.isArray(info)) {
-      this._emit("device:info", { info, raw: data });
+    // حالت 1: اگر دستگاه به صورت آرایه "Device Info" فرستاد (پشتیبانی قبلی)
+    const infoArr = data?.["Device Info"];
+    if (Array.isArray(infoArr)) {
+      this._emit("device:info", { info: infoArr, raw: data });
+      return;
     }
+
+    // حالت 2: پاسخ واقعی دستگاه شما: فیلدهای جدا جدا
+    const requiredKeys = [
+      "Manufacturer",
+      "Device Name",
+      "Model Number",
+      "Device Model",
+      "Production Date",
+      "Serial Number",
+      "Firmware Version",
+    ];
+
+    const hasAny = requiredKeys.some((k) => data?.[k] !== undefined);
+    if (!hasAny) return;
+
+    // تبدیل به آرایه دقیقاً به ترتیبی که about.js انتظار دارد
+    const built = requiredKeys.map((k) => (data?.[k] ?? ""));
+
+    this._emit("device:info", { info: built, raw: data });
   }
+
 
   // =========================================================
   // Status Page - Active DHCP Clients (MESSAGE LIVES HERE)
