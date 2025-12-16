@@ -117,10 +117,14 @@ body {
     linear-gradient(180deg, #071a2b, #0a2c3f);
 }
 
-.page-network-settings body {
+.page-network-settings body  {
   background:
-    radial-gradient(circle at top, rgba(0, 20, 40, 0.8) 0%, rgba(2, 13, 26, 0.8) 80%);
+    radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
+    radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
+    radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, var(--bg-gradient-1), var(--bg-gradient-2));
 }
+
 
 /* ===== Typography ===== */
 h1, h2, h3, h4, h5, h6 {
