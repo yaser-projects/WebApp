@@ -1,31 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="page-network-settings">
 <head>
   <meta charset="UTF-8" />
   <title>Network Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- your existing assets -->
   <link rel="stylesheet" href="css/common-style.css" />
   <link rel="stylesheet" href="css/networksettings.css" />
 </head>
 
-<body class="page-network-settings">
-  <!-- ❌ Removed: Animated Background layer (it was covering body background) -->
-
+<body>
   <div class="page">
-    <!-- Top bar -->
-    <header class="topBar">
-      <button class="backBtn" id="btnBack" type="button" aria-label="Back to Dashboard">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back</span>
+
+    <!-- ✅ استاندارد هدر: Back + Icon + Title/Sub + Status -->
+    <div class="app-header">
+      <button class="icon-btn app-header__back" id="btnBack" type="button" aria-label="Back to Dashboard" title="Back">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"
+                fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
       </button>
 
-      <div class="topTitle">
-        <div class="t1">Network Settings</div>
-        <div class="t2" id="wsState">Disconnected</div>
+      <div class="app-header__main">
+        <div class="app-header__title-row">
+          <span class="app-header__dot" aria-hidden="true"></span>
+          <div class="app-header__titles">
+            <div class="app-header__title">Network Settings</div>
+            <!-- قبلاً wsState اینجا بود -->
+            <div class="app-header__subtitle" id="wsState">Disconnected</div>
+          </div>
+        </div>
       </div>
-    </header>
+
+      <!-- وضعیت سمت راست -->
+      <div class="app-header__status" id="hdrStatus">
+        <span class="status-dot bad app-header__status-dot" aria-hidden="true"></span>
+        <span class="app-header__status-text" id="hdrStatusText">Offline</span>
+      </div>
+    </div>
 
     <!-- Main card -->
     <main class="card">
@@ -344,7 +357,6 @@
                   <input id="st-modemmac" type="text" readonly tabindex="-1" />
                 </div>
               </div>
-
             </fieldset>
           </div>
         </div>
@@ -412,11 +424,8 @@
                   </div>
                 </button>
 
-                <div class="resetText" id="resetText">
-                  Press to factory reset
-                </div>
+                <div class="resetText" id="resetText">Press to factory reset</div>
               </div>
-
             </fieldset>
           </div>
         </div>
@@ -427,7 +436,6 @@
     </main>
   </div>
 
-  <!-- ✅ WS only -->
   <script type="module" src="js/networksettings.js"></script>
 </body>
 </html>

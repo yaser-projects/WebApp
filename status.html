@@ -1,31 +1,46 @@
 <!doctype html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" class="page-status">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Status</title>
+
   <link rel="stylesheet" href="css/common-style.css" />
   <link rel="stylesheet" href="css/status.css" />
 </head>
 
-<body class="page-status">
-  <main class="wrap">
-    <section class="panel" aria-label="Status">
+<body>
+  <!-- ✅ Wrapper استاندارد یکپارچه -->
+  <main class="page-shell">
+    <!-- ✅ Panel استاندارد یکپارچه -->
+    <section class="panel page-panel" aria-label="Status">
 
-            <header class="pill">
-        <div class="pill-left">
-          <button class="icon-btn back-btn" id="btnBack" type="button" title="Back" aria-label="Back">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6"></path>
-            </svg>
-          </button>
+      <!-- استاندارد هدر: Back + Icon + Title/Sub + Status -->
+      <div class="app-header">
+        <button class="icon-btn app-header__back" id="btnBack" type="button" title="Back" aria-label="Back">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"
+                  fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
 
-          <div class="pill-text">
-            <div class="pill-title">Status</div>
-            <div class="pill-sub">device status • stored locally</div>
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <span class="app-header__dot" aria-hidden="true"></span>
+
+            <div class="app-header__titles">
+              <div class="app-header__title">Status</div>
+              <div class="app-header__subtitle">device status • stored locally</div>
+            </div>
           </div>
         </div>
-      </header>
+
+        <div class="app-header__status" id="hdrStatus">
+          <span class="status-dot good app-header__status-dot" aria-hidden="true"></span>
+          <span class="app-header__status-text" id="hdrStatusText">Ready</span>
+        </div>
+      </div>
 
       <section class="card">
         <h2 class="title" id="titleClients">Active DHCP Clients (0 devices connected)</h2>

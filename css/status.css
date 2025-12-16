@@ -1,89 +1,33 @@
+/* =========================================
+   Status Page (Only page-specific styles)
+   Layout MUST come from common-style.css
+   ========================================= */
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
 
-body{
-  margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  color: var(--text);
-  overflow-x:hidden;
-  position:relative;
-}
-
-/* stars */
+/* ستاره‌ها فقط تزئینی (کم‌رنگ‌تر تا بک‌گراند common-style دیده شود) */
 body::before{
   content:"";
   position:fixed;
   inset:0;
   pointer-events:none;
-  opacity:.55;
+  opacity:.20; /* قبلاً .55 بود و بک‌گراند را می‌کشت */
   background-image:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px);
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,.55), transparent 2px);
 }
 
-.wrap{
-  min-height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:34px 16px;
-}
-
-.panel{
-  width:min(760px, 95vw);
-  border-radius: 28px;
-  border:1px solid var(--glass-border);
-  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding:22px 18px;
-}
-
-.topActions{
-  display:flex;
-  justify-content:center;
-  margin-bottom: 14px;
-}
-
-.btnTop{
-  padding:12px 22px;
-  border-radius: 14px;
-  border: 1px solid rgba(25,243,255,.35);
-  background: rgba(0,0,0,.10);
-  color: var(--accent);
-  font-weight: 900;
-  font-size: 16px;
-  cursor:pointer;
-  transition: transform .12s ease, filter .12s ease, background .12s ease;
-}
-.btnTop:hover{
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  background: rgba(25,243,255,.06);
-}
-.btnTop:active{
-  transform: translateY(0px) scale(.99);
-}
-
-.card{
-  border-radius: var(--radius);
-  border:1px solid var(--glass-border);
-  background: rgba(0,0,0,.14);
-  padding:14px 14px;
-}
-
+/* عنوان و جدول */
 .title{
   margin: 4px 0 12px;
   color: var(--accent);
-  font-weight: 900;
-  font-size: 18px;
+  font-weight: 800;
+  font-size: 1.05rem;
 }
 
 .tableWrap{
@@ -102,8 +46,9 @@ body::before{
 .tbl thead th{
   text-align:left;
   padding:10px 12px;
-  font-weight: 900;
-  color: rgba(25,243,255,.92);
+  font-weight: 700;
+  font-size: .85rem;
+  color: var(--accent);
   background: rgba(0,0,0,.20);
   border-bottom: 1px solid rgba(255,255,255,.10);
 }
@@ -111,24 +56,23 @@ body::before{
 .tbl tbody td{
   padding:10px 12px;
   color: rgba(255,255,255,.90);
-  font-weight: 750;
+  font-weight: 650;
+  font-size: .85rem;
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 
-.tbl tbody tr:last-child td{
-  border-bottom:none;
-}
+.tbl tbody tr:last-child td{ border-bottom:none; }
 
 .emptyRow td{
-  color: rgba(255,255,255,.70);
+  color: var(--text-muted);
   text-align:center;
-  font-weight: 800;
+  font-weight: 650;
 }
 
 .readState{
-  margin-top:10px;
+  margin-top:12px;
   text-align:center;
-  color: rgba(25,243,255,.90);
-  font-weight: 800;
-  font-size: 13px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: .8rem;
 }

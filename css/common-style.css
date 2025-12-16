@@ -76,16 +76,19 @@ body {
 body {
   display: flex;
   flex-direction: column;
-  background-image: url('../image/background.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+
+  background-color: var(--bg-primary);
+  background-image: var(--page-bg, none), url('../image/background.png');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
 }
+
 
 /* ===== Background Patterns for Different Pages ===== */
 .page-dashboard body {
-  background:
+  --page-bg:
     radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
     radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
     radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
@@ -93,7 +96,7 @@ body {
 }
 
 .page-status body {
-  background:
+  --page-bg:
     radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .23), transparent 60%),
     radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .20), transparent 60%),
     radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
@@ -103,7 +106,7 @@ body {
 .page-about body,
 .page-add-device body,
 .page-remote-scan body {
-  background:
+  --page-bg:
     radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
     radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
     radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
@@ -111,19 +114,20 @@ body {
 }
 
 .page-device-control body {
-  background:
+  --page-bg:
     radial-gradient(900px 600px at 50% 25%, rgba(47,230,182,.12), transparent 55%),
     radial-gradient(800px 500px at 20% 70%, rgba(90,160,255,.10), transparent 55%),
     linear-gradient(180deg, #071a2b, #0a2c3f);
 }
 
-.page-network-settings body  {
-  background:
+.page-network-settings body {
+  --page-bg:
     radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
     radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
     radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
     linear-gradient(180deg, var(--bg-gradient-1), var(--bg-gradient-2));
 }
+
 
 
 /* ===== Typography ===== */
@@ -447,6 +451,40 @@ label {
   padding: 20px;
 }
 
+/* ===== Standard Page Layout (Unified) ===== */
+:root{
+  --page-max-width: 760px;   /* همه صفحات مثل هم */
+  --page-pad: 16px;
+  --panel-pad: 22px;
+}
+
+.page-shell{
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 34px var(--page-pad);
+}
+
+.page-panel{
+  width: min(var(--page-max-width), 95vw);
+  padding: var(--panel-pad);
+  border-radius: 28px;
+}
+
+/* موبایل: ارتفاع و padding هماهنگ */
+@media (max-width: 480px){
+  :root{
+    --page-max-width: 560px;
+    --panel-pad: 18px;
+  }
+  .page-shell{
+    padding: 20px var(--page-pad);
+    align-items: flex-start;
+  }
+}
+
+
 /* ===== Top Bar ===== */
 .top-bar {
   display: flex;
@@ -454,6 +492,116 @@ label {
   align-items: center;
   margin-bottom: 18px;
 }
+
+/* ===== App Header (Back + Title + Subtitle + Status) ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  margin-bottom: 16px;
+}
+
+/* Back button uses existing .icon-btn but slightly larger like the screenshot */
+.app-header__back.icon-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.06);
+}
+
+.app-header__main {
+  flex: 1;
+  min-width: 0; /* important for ellipsis on small screens */
+}
+
+.app-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.app-header__dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), rgba(255,255,255,.06) 55%, rgba(5,208,197,.10));
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  flex: 0 0 auto;
+}
+
+.app-header__titles {
+  min-width: 0;
+}
+
+.app-header__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__subtitle {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding-left: 6px;
+}
+
+.app-header__status-text {
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.9;
+}
+
+/* Mobile: allow subtitle to wrap if needed */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+
+  .app-header__back.icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .app-header__title {
+    font-size: 0.98rem;
+  }
+
+  .app-header__subtitle {
+    white-space: normal; /* wrap on very small screens */
+  }
+}
+
 
 /* ===== Tables ===== */
 table {
@@ -544,3 +692,10 @@ table tr:hover {
 .mb-2 { margin-bottom: 16px; }
 .mb-3 { margin-bottom: 24px; }
 
+.page-panel.panel{
+  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
