@@ -1,113 +1,12 @@
 /* ============================================
-   Network Settings (Page CSS)
+   Network Settings (Optimized)
+   - Layout (center/width/padding) comes from common-style.css via:
+     <main class="page-shell"> and <section class="panel page-panel">
+   - App Header styles come from common-style.css (.app-header)
+   این فایل فقط استایل‌های اختصاصی آکاردئون و فرم‌ها را نگه می‌دارد.
    ============================================ */
 
-/* کلاس صفحه الان روی <html> است؛ پس اینجا body ساده می‌گیریم */
-body{
-  margin: 0;
-  padding: 0;
-  color: var(--text);
-  font-family: var(--font-main);
-}
-
-/* Layout container */
-.page{
-  width: 100%;
-  max-width: 560px;
-  margin: 22px auto;
-  padding: 16px;
-}
-
-/* ===========================
-   App Header (Back + Title + Status)
-   =========================== */
-.app-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-
-  padding: 14px 14px;
-  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-card);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  margin-bottom: 14px;
-}
-
-.app-header__back.icon-btn{
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: rgba(255,255,255,.06);
-}
-
-.app-header__main{ flex:1; min-width:0; }
-
-.app-header__title-row{
-  display:flex;
-  align-items:center;
-  gap: 10px;
-  min-width:0;
-}
-
-.app-header__dot{
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), rgba(255,255,255,.06) 55%, rgba(5,208,197,.10));
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 6px 18px rgba(0,0,0,.25);
-  flex:0 0 auto;
-}
-
-.app-header__titles{ min-width:0; }
-
-.app-header__title{
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: .2px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-header__subtitle{
-  font-size: .82rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-header__status{
-  display:inline-flex;
-  align-items:center;
-  gap: 8px;
-  flex:0 0 auto;
-}
-
-.app-header__status-dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
-  display:inline-block;
-}
-
-.app-header__status-text{
-  font-size: .85rem;
-  color: var(--text);
-  opacity:.9;
-}
-
-@media (max-width: 480px){
-  .app-header__subtitle{ white-space: normal; }
-}
+/* ❌ نکته: در این فایل نباید برای body / .page / .app-header عرض و مرکزچین تعریف شود. */
 
 /* Main card */
 .card{
@@ -348,3 +247,53 @@ body{
 }
 .toast.ok{ opacity: 1; }
 .toast.bad{ opacity: 1; border-color: rgba(255, 77, 79, .45); }
+
+/* ==================================================
+   FINAL FIX — Network Settings layout (no sticky, no inner scroll)
+   ================================================== */
+
+/* صفحه باید از بالا شروع شود ولی افقی دقیقاً وسط باشد */
+.page-network-settings body{
+  overflow-y: auto;
+}
+
+/* اگر common-style کلاس‌ها را ندارد، اینجا تعریف می‌کنیم (سفت و قطعی) */
+.page-network-settings .page-shell{
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+
+  /* افقی وسط */
+  justify-content: center;
+
+  /* عمودی از بالا */
+  align-items: flex-start;
+
+  padding: 26px 16px 44px;
+}
+
+/* پنل دقیقا هم‌عرض Status/About (همان حس کارت) */
+.page-network-settings .page-panel{
+  width: min(760px, 95vw);
+  padding: 22px 18px;
+  border-radius: 28px;
+
+  /* خیلی مهم: اسکرول داخلی نداشته باشد */
+  max-height: none;
+  overflow: visible;
+}
+
+/* هدر sticky نباشد و روی فرم نیفتد */
+.page-network-settings .app-header{
+  position: static;
+}
+
+/* روی موبایل کمی جمع‌وجورتر */
+@media (max-width: 520px){
+  .page-network-settings .page-shell{
+    padding: 18px 12px 34px;
+  }
+  .page-network-settings .page-panel{
+    padding: 18px 14px;
+  }
+}

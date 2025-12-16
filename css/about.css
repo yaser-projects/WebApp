@@ -1,96 +1,28 @@
+/* =========================================
+   About Page (Only page-specific styles)
+   Layout MUST come from common-style.css
+   ========================================= */
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
 
-body{
-  margin:0;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  color: var(--text);
-  overflow-x:hidden;
-  position:relative;
-}
-
-/* star particles */
+/* ستاره‌ها اگر زیاد باشند، هدر/نوار بالا “گم” به نظر می‌رسد */
 body::before{
   content:"";
   position:fixed;
   inset:0;
   pointer-events:none;
-  opacity:.55;
+  opacity:.20; /* قبلاً .55 بود */
   background-image:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) 2px),
-    radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,.55) 0, rgba(255,255,255,0) 2px);
+    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.55), transparent 2px),
+    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,.45), transparent 2px),
+    radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,.55), transparent 2px);
 }
 
-.wrap{
-  min-height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:34px 16px;
-}
-
-.panel{
-  width:min(520px, 92vw);
-  border-radius: 28px;
-  border:1px solid var(--glass-border);
-  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  padding:18px 18px 22px;
-}
-
-/* NEW: top bar */
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:6px 6px 2px;
-}
-
-.iconBtn{
-  width:44px;
-  height:44px;
-  border-radius: 14px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.18);
-  color: rgba(255,255,255,.86);
-  display:grid;
-  place-items:center;
-  cursor:pointer;
-  transition: transform .12s ease, filter .12s ease, background .12s ease;
-}
-.iconBtn svg{ width:22px; height:22px; }
-.iconBtn:hover{
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  background: rgba(255,255,255,.06);
-}
-.iconBtn:active{
-  transform: translateY(0) scale(.99);
-}
-
-.topbarRight{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.statusDot{
-  width:44px;
-  height:44px;
-  border-radius: 999px;
-  border:1px solid rgba(255,255,255,.10);
-  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.18), rgba(255,255,255,.05));
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
-}
-
+/* ===== content ===== */
 .hero{
   text-align:center;
   padding:6px 10px 10px;
@@ -136,10 +68,7 @@ body::before{
   padding:9px 10px;
   border-bottom: 1px solid rgba(255,255,255,.10);
 }
-
-.row:last-child{
-  border-bottom:none;
-}
+.row:last-child{ border-bottom:none; }
 
 .k{
   color: var(--accent);
@@ -179,33 +108,5 @@ body::before{
   font-weight: 900;
 }
 
-.actions{
-  margin-top:16px;
-}
-
-.btn{
-  width:100%;
-  padding:14px 14px;
-  border-radius: 18px;
-  border: 1px solid rgba(25,243,255,.35);
-  background: rgba(0,0,0,.10);
-  color: var(--accent);
-  font-weight: 900;
-  font-size: 16px;
-  cursor:pointer;
-  transition: transform .12s ease, filter .12s ease, background .12s ease;
-}
-
-.btn:hover{
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  background: rgba(25,243,255,.06);
-}
-.btn:active{
-  transform: translateY(0px) scale(.99);
-}
-.btn:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-  transform:none;
-}
+.actions{ margin-top:16px; }
+.btn{ width:100%; }

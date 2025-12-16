@@ -9,10 +9,10 @@
 </head>
 
 <body>
-  <main class="wrap">
-    <section class="panel" aria-label="About">
+  <main class="page-shell">
+    <section class="panel page-panel" aria-label="About">
 
-      <!-- استاندارد هدر: Back + Icon + Title/Sub + Status -->
+      <!-- App Header -->
       <div class="app-header">
         <button class="icon-btn app-header__back" id="btnBack" type="button" aria-label="Back" title="Back">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -48,34 +48,13 @@
 
       <section class="card infoCard" aria-label="Device Info">
         <div class="rows" role="table" aria-label="Device information table">
-          <div class="row" role="row">
-            <div class="k" role="cell">Manufacturer</div>
-            <div class="v" role="cell" id="vManufacturer">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Device Name</div>
-            <div class="v" role="cell" id="vDeviceName">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Model Number</div>
-            <div class="v" role="cell" id="vModelNumber">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Device Model</div>
-            <div class="v" role="cell" id="vDeviceModel">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Production Date</div>
-            <div class="v" role="cell" id="vProductionDate">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Serial Number</div>
-            <div class="v" role="cell" id="vSerialNumber">-</div>
-          </div>
-          <div class="row" role="row">
-            <div class="k" role="cell">Firmware Version</div>
-            <div class="v" role="cell" id="vFirmwareVersion">-</div>
-          </div>
+          <div class="row"><div class="k">Manufacturer</div><div class="v" id="vManufacturer">-</div></div>
+          <div class="row"><div class="k">Device Name</div><div class="v" id="vDeviceName">-</div></div>
+          <div class="row"><div class="k">Model Number</div><div class="v" id="vModelNumber">-</div></div>
+          <div class="row"><div class="k">Device Model</div><div class="v" id="vDeviceModel">-</div></div>
+          <div class="row"><div class="k">Production Date</div><div class="v" id="vProductionDate">-</div></div>
+          <div class="row"><div class="k">Serial Number</div><div class="v" id="vSerialNumber">-</div></div>
+          <div class="row"><div class="k">Firmware Version</div><div class="v" id="vFirmwareVersion">-</div></div>
         </div>
 
         <div class="readState" id="readState">Reading device info...</div>

@@ -10,431 +10,432 @@
 </head>
 
 <body>
-  <div class="page">
+  <main class="page-shell">
+    <section class="panel page-panel">
 
-    <!-- ✅ استاندارد هدر: Back + Icon + Title/Sub + Status -->
-    <div class="app-header">
-      <button class="icon-btn app-header__back" id="btnBack" type="button" aria-label="Back to Dashboard" title="Back">
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path d="M15 18l-6-6 6-6"
-                fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </button>
+      <!-- ✅ استاندارد هدر: Back + Icon + Title/Sub + Status -->
+      <div class="app-header">
+        <button class="icon-btn app-header__back" id="btnBack" type="button" aria-label="Back to Dashboard" title="Back">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6"
+                  fill="none" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
 
-      <div class="app-header__main">
-        <div class="app-header__title-row">
-          <span class="app-header__dot" aria-hidden="true"></span>
-          <div class="app-header__titles">
-            <div class="app-header__title">Network Settings</div>
-            <!-- قبلاً wsState اینجا بود -->
-            <div class="app-header__subtitle" id="wsState">Disconnected</div>
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <span class="app-header__dot" aria-hidden="true"></span>
+            <div class="app-header__titles">
+              <div class="app-header__title">Network Settings</div>
+              <div class="app-header__subtitle" id="wsState">Disconnected</div>
+            </div>
           </div>
+        </div>
+
+        <div class="app-header__status" id="hdrStatus">
+          <span class="status-dot bad app-header__status-dot" aria-hidden="true"></span>
+          <span class="app-header__status-text" id="hdrStatusText">Offline</span>
         </div>
       </div>
 
-      <!-- وضعیت سمت راست -->
-      <div class="app-header__status" id="hdrStatus">
-        <span class="status-dot bad app-header__status-dot" aria-hidden="true"></span>
-        <span class="app-header__status-text" id="hdrStatusText">Offline</span>
+      <!-- Main card -->
+      <div class="card">
+        <section class="accordion" aria-label="Network sections">
+
+          <!-- Access Point -->
+          <div class="accItem active" id="acc-ap">
+            <button class="accHead" type="button">
+              <span class="accIcon"><i class="fas fa-wifi"></i></span>
+              <span class="accText">Access Point</span>
+            </button>
+
+            <div class="accBody">
+              <!-- FIELDSET 1 -->
+              <fieldset class="fs">
+                <legend>WIRELESS SECURITY SETTINGS</legend>
+
+                <div class="row2">
+                  <div class="field">
+                    <label for="ap-wifiChannel">
+                      WiFi Channel
+                      <span class="tip" data-tip="Auto or 1 to 13"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-wifiChannel">
+                      <i class="fas fa-signal"></i>
+                      <select id="ap-wifiChannel">
+                        <option value="Auto">Auto</option>
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+                        <option value="13">13</option>
+                      </select>
+                    </div>
+                    <div class="hint">Auto or 1 to 13</div>
+                    <div class="err" id="ap-wifiChannel-err"></div>
+                  </div>
+
+                  <div class="field">
+                    <label>
+                      Hidden SSID
+                      <span class="tip" data-tip="false = Broadcast / true = Hide SSID"></span>
+                    </label>
+                    <label class="checkLine" for="ap-ssidHidden">
+                      <span class="checkIcon"><i class="fas fa-eye-slash"></i></span>
+                      <span class="checkText">Hide SSID</span>
+                      <input type="checkbox" id="ap-ssidHidden" />
+                    </label>
+                    <div class="hint">false = Broadcast SSID / true = Hide SSID</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="ap-ssid">
+                    SSID
+                    <span class="tip" data-tip='1-32 chars, not empty, NOT "Metal Brain"'></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-ssid">
+                    <i class="fas fa-wifi"></i>
+                    <input id="ap-ssid" type="text" autocomplete="off" placeholder="Enter SSID (1-32)" />
+                  </div>
+                  <div class="hint">1 to 32 characters • cannot be “Metal Brain”</div>
+                  <div class="err" id="ap-ssid-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="ap-preSharedKey">
+                    Pre-Shared Key
+                    <span class="tip" data-tip="8-64 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-preSharedKey">
+                    <i class="fas fa-key"></i>
+                    <input id="ap-preSharedKey" type="text" autocomplete="off" placeholder="Password (8-64)" />
+                  </div>
+                  <div class="hint">8 to 64 characters</div>
+                  <div class="err" id="ap-preSharedKey-err"></div>
+                </div>
+              </fieldset>
+
+              <!-- FIELDSET 2 -->
+              <fieldset class="fs">
+                <legend>MORE SETTINGS 1</legend>
+
+                <div class="field">
+                  <label for="ap-hostname">
+                    Hostname
+                    <span class="tip" data-tip="1-16 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-hostname">
+                    <i class="fas fa-server"></i>
+                    <input id="ap-hostname" type="text" autocomplete="off" placeholder="HostName (1-16)" />
+                  </div>
+                  <div class="hint">1 to 16 characters</div>
+                  <div class="err" id="ap-hostname-err"></div>
+                </div>
+
+                <div class="ipMode">
+                  <label class="radioLine">
+                    <input type="radio" name="ap-ipmode" id="ap-ipmode4" checked />
+                    <span>IPv4</span>
+                  </label>
+                  <label class="radioLine">
+                    <input type="radio" name="ap-ipmode" id="ap-ipmode6" />
+                    <span>IPv6</span>
+                  </label>
+                </div>
+
+                <div class="field">
+                  <label for="ap-ipv4">
+                    IPv4
+                    <span class="tip" data-tip="4 parts 0-255 (e.g., 192.168.1.2)"></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-ipv4">
+                    <i class="fas fa-network-wired"></i>
+                    <input id="ap-ipv4" type="text" autocomplete="off" placeholder="192.168.1.2" />
+                  </div>
+                  <div class="hint">IPv4: 4 numbers 0-255</div>
+                  <div class="err" id="ap-ipv4-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="ap-ipv6">
+                    IPv6
+                    <span class="tip" data-tip="8 hex segments (e.g., 2001:0db8:0000:...:0001)"></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-ipv6">
+                    <i class="fas fa-network-wired"></i>
+                    <input id="ap-ipv6" type="text" autocomplete="off" placeholder="2001:0db8:0000:0000:0000:0000:0000:0001" />
+                  </div>
+                  <div class="hint">IPv6: exactly 8 hex segments</div>
+                  <div class="err" id="ap-ipv6-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="ap-port">
+                    Port
+                    <span class="tip" data-tip="0-65535"></span>
+                  </label>
+                  <div class="inputIcon" data-field="ap-port">
+                    <i class="fas fa-plug"></i>
+                    <input id="ap-port" type="text" autocomplete="off" placeholder="80" />
+                  </div>
+                  <div class="hint">0 to 65535</div>
+                  <div class="err" id="ap-port-err"></div>
+                </div>
+              </fieldset>
+
+              <!-- FIELDSET 3 -->
+              <fieldset class="fs">
+                <legend>MORE SETTINGS 2</legend>
+
+                <div class="row2">
+                  <div class="field">
+                    <label for="ap-maxConnection">
+                      Max Connections
+                      <span class="tip" data-tip="1 to 4 (default 1)"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-maxConnection">
+                      <i class="fas fa-users"></i>
+                      <select id="ap-maxConnection">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                      </select>
+                    </div>
+                    <div class="hint">1 to 4</div>
+                    <div class="err" id="ap-maxConnection-err"></div>
+                  </div>
+
+                  <div class="field">
+                    <label for="ap-macaddress">
+                      MAC (Read only)
+                      <span class="tip" data-tip="Displayed as AA:BB:CC:DD:EE:FF"></span>
+                    </label>
+                    <div class="inputIcon ro" data-field="ap-macaddress">
+                      <i class="fas fa-ethernet"></i>
+                      <input id="ap-macaddress" type="text" readonly tabindex="-1" />
+                    </div>
+                    <div class="hint">Read only</div>
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- FIELDSET 4 -->
+              <fieldset class="fs">
+                <legend>MORE SETTINGS 3</legend>
+
+                <div class="row2">
+                  <div class="field">
+                    <label for="ap-gateway">
+                      Gateway
+                      <span class="tip" data-tip="IPv4, 4 parts 0-255"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-gateway">
+                      <i class="fas fa-route"></i>
+                      <input id="ap-gateway" type="text" autocomplete="off" placeholder="192.168.1.1" />
+                    </div>
+                    <div class="err" id="ap-gateway-err"></div>
+                  </div>
+
+                  <div class="field">
+                    <label for="ap-subnet">
+                      Subnet
+                      <span class="tip" data-tip="IPv4, e.g., 255.255.255.0"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-subnet">
+                      <i class="fas fa-project-diagram"></i>
+                      <input id="ap-subnet" type="text" autocomplete="off" placeholder="255.255.255.0" />
+                    </div>
+                    <div class="err" id="ap-subnet-err"></div>
+                  </div>
+                </div>
+
+                <div class="row2">
+                  <div class="field">
+                    <label for="ap-dns1">
+                      Primary DNS
+                      <span class="tip" data-tip="IPv4, e.g., 8.8.8.8"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-dns1">
+                      <i class="fas fa-globe"></i>
+                      <input id="ap-dns1" type="text" autocomplete="off" placeholder="8.8.8.8" />
+                    </div>
+                    <div class="err" id="ap-dns1-err"></div>
+                  </div>
+
+                  <div class="field">
+                    <label for="ap-dns2">
+                      Secondary DNS
+                      <span class="tip" data-tip="IPv4, e.g., 8.8.4.4"></span>
+                    </label>
+                    <div class="inputIcon" data-field="ap-dns2">
+                      <i class="fas fa-globe"></i>
+                      <input id="ap-dns2" type="text" autocomplete="off" placeholder="8.8.4.4" />
+                    </div>
+                    <div class="err" id="ap-dns2-err"></div>
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- Station -->
+          <div class="accItem" id="acc-sta">
+            <button class="accHead" type="button">
+              <span class="accIcon"><i class="fas fa-network-wired"></i></span>
+              <span class="accText">Station</span>
+            </button>
+
+            <div class="accBody">
+              <fieldset class="fs">
+                <legend>STATION SETTINGS</legend>
+
+                <div class="field">
+                  <label for="st-ssid">
+                    SSID
+                    <span class="tip" data-tip="1-32 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="st-ssid">
+                    <i class="fas fa-wifi"></i>
+                    <input id="st-ssid" type="text" autocomplete="off" placeholder="SSID (1-32)" />
+                  </div>
+                  <div class="hint">1 to 32 characters</div>
+                  <div class="err" id="st-ssid-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="st-key">
+                    Pre-Shared Key
+                    <span class="tip" data-tip="0-64 chars (can be empty)"></span>
+                  </label>
+                  <div class="inputIcon" data-field="st-key">
+                    <i class="fas fa-key"></i>
+                    <input id="st-key" type="text" autocomplete="off" placeholder="(optional) up to 64 chars" />
+                  </div>
+                  <div class="hint">0 to 64 characters (optional)</div>
+                  <div class="err" id="st-key-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="st-hostname">
+                    Host Name
+                    <span class="tip" data-tip="1-16 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="st-hostname">
+                    <i class="fas fa-server"></i>
+                    <input id="st-hostname" type="text" autocomplete="off" placeholder="HostName (1-16)" />
+                  </div>
+                  <div class="hint">1 to 16 characters</div>
+                  <div class="err" id="st-hostname-err"></div>
+                </div>
+
+                <div class="row2">
+                  <div class="field">
+                    <label for="st-ip">IP Address (Read only)</label>
+                    <div class="inputIcon ro" data-field="st-ip">
+                      <i class="fas fa-sitemap"></i>
+                      <input id="st-ip" type="text" readonly tabindex="-1" />
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label for="st-macaddress">MAC Address (Read only)</label>
+                    <div class="inputIcon ro" data-field="st-macaddress">
+                      <i class="fas fa-ethernet"></i>
+                      <input id="st-macaddress" type="text" readonly tabindex="-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="st-modemmac">Modem MAC (Read only)</label>
+                  <div class="inputIcon ro" data-field="st-modemmac">
+                    <i class="fas fa-ethernet"></i>
+                    <input id="st-modemmac" type="text" readonly tabindex="-1" />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div class="accItem" id="acc-sec">
+            <button class="accHead" type="button">
+              <span class="accIcon"><i class="fas fa-lock"></i></span>
+              <span class="accText">Security</span>
+            </button>
+
+            <div class="accBody">
+              <fieldset class="fs">
+                <legend>SECURITY</legend>
+
+                <div class="field">
+                  <label for="sec-username">
+                    Username
+                    <span class="tip" data-tip="1-16 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="sec-username">
+                    <i class="fas fa-user"></i>
+                    <input id="sec-username" type="text" autocomplete="off" placeholder="Username (1-16)" />
+                  </div>
+                  <div class="hint">1 to 16 characters</div>
+                  <div class="err" id="sec-username-err"></div>
+                </div>
+
+                <div class="field">
+                  <label for="sec-password">
+                    Password
+                    <span class="tip" data-tip="1-16 chars, not empty"></span>
+                  </label>
+                  <div class="inputIcon" data-field="sec-password">
+                    <i class="fas fa-key"></i>
+                    <input id="sec-password" type="text" autocomplete="off" placeholder="Password (1-16)" />
+                  </div>
+                  <div class="hint">1 to 16 characters</div>
+                  <div class="err" id="sec-password-err"></div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- Reset Factory -->
+          <div class="accItem" id="acc-reset">
+            <button class="accHead" type="button">
+              <span class="accIcon"><i class="fas fa-rotate"></i></span>
+              <span class="accText">Reset Factory</span>
+            </button>
+
+            <div class="accBody">
+              <fieldset class="fs">
+                <legend>FACTORY RESET</legend>
+
+                <div class="resetWrap">
+                  <button class="resetCircle" id="resetCircle" type="button" aria-label="Factory Reset">
+                    <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+                      <circle class="ringBg" cx="60" cy="60" r="50"></circle>
+                      <circle class="ringBar" cx="60" cy="60" r="50"></circle>
+                    </svg>
+                    <div class="resetCenter">
+                      <div class="resetMain" id="resetMain">Start</div>
+                      <div class="resetSub" id="resetSub">Press to factory reset</div>
+                    </div>
+                  </button>
+
+                  <div class="resetText" id="resetText">Press to factory reset</div>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+        </section>
+
+        <div class="toast" id="toast" aria-live="polite"></div>
       </div>
-    </div>
 
-    <!-- Main card -->
-    <main class="card">
-      <section class="accordion" aria-label="Network sections">
-
-        <!-- Access Point -->
-        <div class="accItem active" id="acc-ap">
-          <button class="accHead" type="button">
-            <span class="accIcon"><i class="fas fa-wifi"></i></span>
-            <span class="accText">Access Point</span>
-          </button>
-
-          <div class="accBody">
-            <!-- FIELDSET 1 -->
-            <fieldset class="fs">
-              <legend>WIRELESS SECURITY SETTINGS</legend>
-
-              <div class="row2">
-                <div class="field">
-                  <label for="ap-wifiChannel">
-                    WiFi Channel
-                    <span class="tip" data-tip="Auto or 1 to 13"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-wifiChannel">
-                    <i class="fas fa-signal"></i>
-                    <select id="ap-wifiChannel">
-                      <option value="Auto">Auto</option>
-                      <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-                      <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-                      <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-                      <option value="10">10</option><option value="11">11</option><option value="12">12</option>
-                      <option value="13">13</option>
-                    </select>
-                  </div>
-                  <div class="hint">Auto or 1 to 13</div>
-                  <div class="err" id="ap-wifiChannel-err"></div>
-                </div>
-
-                <div class="field">
-                  <label>
-                    Hidden SSID
-                    <span class="tip" data-tip="false = Broadcast / true = Hide SSID"></span>
-                  </label>
-                  <label class="checkLine" for="ap-ssidHidden">
-                    <span class="checkIcon"><i class="fas fa-eye-slash"></i></span>
-                    <span class="checkText">Hide SSID</span>
-                    <input type="checkbox" id="ap-ssidHidden" />
-                  </label>
-                  <div class="hint">false = Broadcast SSID / true = Hide SSID</div>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="ap-ssid">
-                  SSID
-                  <span class="tip" data-tip='1-32 chars, not empty, NOT "Metal Brain"'></span>
-                </label>
-                <div class="inputIcon" data-field="ap-ssid">
-                  <i class="fas fa-wifi"></i>
-                  <input id="ap-ssid" type="text" autocomplete="off" placeholder="Enter SSID (1-32)" />
-                </div>
-                <div class="hint">1 to 32 characters • cannot be “Metal Brain”</div>
-                <div class="err" id="ap-ssid-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="ap-preSharedKey">
-                  Pre-Shared Key
-                  <span class="tip" data-tip="8-64 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="ap-preSharedKey">
-                  <i class="fas fa-key"></i>
-                  <input id="ap-preSharedKey" type="text" autocomplete="off" placeholder="Password (8-64)" />
-                </div>
-                <div class="hint">8 to 64 characters</div>
-                <div class="err" id="ap-preSharedKey-err"></div>
-              </div>
-            </fieldset>
-
-            <!-- FIELDSET 2 -->
-            <fieldset class="fs">
-              <legend>MORE SETTINGS 1</legend>
-
-              <div class="field">
-                <label for="ap-hostname">
-                  Hostname
-                  <span class="tip" data-tip="1-16 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="ap-hostname">
-                  <i class="fas fa-server"></i>
-                  <input id="ap-hostname" type="text" autocomplete="off" placeholder="HostName (1-16)" />
-                </div>
-                <div class="hint">1 to 16 characters</div>
-                <div class="err" id="ap-hostname-err"></div>
-              </div>
-
-              <div class="ipMode">
-                <label class="radioLine">
-                  <input type="radio" name="ap-ipmode" id="ap-ipmode4" checked />
-                  <span>IPv4</span>
-                </label>
-                <label class="radioLine">
-                  <input type="radio" name="ap-ipmode" id="ap-ipmode6" />
-                  <span>IPv6</span>
-                </label>
-              </div>
-
-              <div class="field">
-                <label for="ap-ipv4">
-                  IPv4
-                  <span class="tip" data-tip="4 parts 0-255 (e.g., 192.168.1.2)"></span>
-                </label>
-                <div class="inputIcon" data-field="ap-ipv4">
-                  <i class="fas fa-network-wired"></i>
-                  <input id="ap-ipv4" type="text" autocomplete="off" placeholder="192.168.1.2" />
-                </div>
-                <div class="hint">IPv4: 4 numbers 0-255</div>
-                <div class="err" id="ap-ipv4-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="ap-ipv6">
-                  IPv6
-                  <span class="tip" data-tip="8 hex segments (e.g., 2001:0db8:0000:...:0001)"></span>
-                </label>
-                <div class="inputIcon" data-field="ap-ipv6">
-                  <i class="fas fa-network-wired"></i>
-                  <input id="ap-ipv6" type="text" autocomplete="off" placeholder="2001:0db8:0000:0000:0000:0000:0000:0001" />
-                </div>
-                <div class="hint">IPv6: exactly 8 hex segments</div>
-                <div class="err" id="ap-ipv6-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="ap-port">
-                  Port
-                  <span class="tip" data-tip="0-65535"></span>
-                </label>
-                <div class="inputIcon" data-field="ap-port">
-                  <i class="fas fa-plug"></i>
-                  <input id="ap-port" type="text" autocomplete="off" placeholder="80" />
-                </div>
-                <div class="hint">0 to 65535</div>
-                <div class="err" id="ap-port-err"></div>
-              </div>
-            </fieldset>
-
-            <!-- FIELDSET 3 -->
-            <fieldset class="fs">
-              <legend>MORE SETTINGS 2</legend>
-
-              <div class="row2">
-                <div class="field">
-                  <label for="ap-maxConnection">
-                    Max Connections
-                    <span class="tip" data-tip="1 to 4 (default 1)"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-maxConnection">
-                    <i class="fas fa-users"></i>
-                    <select id="ap-maxConnection">
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                    </select>
-                  </div>
-                  <div class="hint">1 to 4</div>
-                  <div class="err" id="ap-maxConnection-err"></div>
-                </div>
-
-                <div class="field">
-                  <label for="ap-macaddress">
-                    MAC (Read only)
-                    <span class="tip" data-tip="Displayed as AA:BB:CC:DD:EE:FF"></span>
-                  </label>
-                  <div class="inputIcon ro" data-field="ap-macaddress">
-                    <i class="fas fa-ethernet"></i>
-                    <input id="ap-macaddress" type="text" readonly tabindex="-1" />
-                  </div>
-                  <div class="hint">Read only</div>
-                </div>
-              </div>
-            </fieldset>
-
-            <!-- FIELDSET 4 -->
-            <fieldset class="fs">
-              <legend>MORE SETTINGS 3</legend>
-
-              <div class="row2">
-                <div class="field">
-                  <label for="ap-gateway">
-                    Gateway
-                    <span class="tip" data-tip="IPv4, 4 parts 0-255"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-gateway">
-                    <i class="fas fa-route"></i>
-                    <input id="ap-gateway" type="text" autocomplete="off" placeholder="192.168.1.1" />
-                  </div>
-                  <div class="err" id="ap-gateway-err"></div>
-                </div>
-
-                <div class="field">
-                  <label for="ap-subnet">
-                    Subnet
-                    <span class="tip" data-tip="IPv4, e.g., 255.255.255.0"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-subnet">
-                    <i class="fas fa-project-diagram"></i>
-                    <input id="ap-subnet" type="text" autocomplete="off" placeholder="255.255.255.0" />
-                  </div>
-                  <div class="err" id="ap-subnet-err"></div>
-                </div>
-              </div>
-
-              <div class="row2">
-                <div class="field">
-                  <label for="ap-dns1">
-                    Primary DNS
-                    <span class="tip" data-tip="IPv4, e.g., 8.8.8.8"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-dns1">
-                    <i class="fas fa-globe"></i>
-                    <input id="ap-dns1" type="text" autocomplete="off" placeholder="8.8.8.8" />
-                  </div>
-                  <div class="err" id="ap-dns1-err"></div>
-                </div>
-
-                <div class="field">
-                  <label for="ap-dns2">
-                    Secondary DNS
-                    <span class="tip" data-tip="IPv4, e.g., 8.8.4.4"></span>
-                  </label>
-                  <div class="inputIcon" data-field="ap-dns2">
-                    <i class="fas fa-globe"></i>
-                    <input id="ap-dns2" type="text" autocomplete="off" placeholder="8.8.4.4" />
-                  </div>
-                  <div class="err" id="ap-dns2-err"></div>
-                </div>
-              </div>
-            </fieldset>
-          </div>
-        </div>
-
-        <!-- Station -->
-        <div class="accItem" id="acc-sta">
-          <button class="accHead" type="button">
-            <span class="accIcon"><i class="fas fa-network-wired"></i></span>
-            <span class="accText">Station</span>
-          </button>
-
-          <div class="accBody">
-            <fieldset class="fs">
-              <legend>STATION SETTINGS</legend>
-
-              <div class="field">
-                <label for="st-ssid">
-                  SSID
-                  <span class="tip" data-tip="1-32 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="st-ssid">
-                  <i class="fas fa-wifi"></i>
-                  <input id="st-ssid" type="text" autocomplete="off" placeholder="SSID (1-32)" />
-                </div>
-                <div class="hint">1 to 32 characters</div>
-                <div class="err" id="st-ssid-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="st-key">
-                  Pre-Shared Key
-                  <span class="tip" data-tip="0-64 chars (can be empty)"></span>
-                </label>
-                <div class="inputIcon" data-field="st-key">
-                  <i class="fas fa-key"></i>
-                  <input id="st-key" type="text" autocomplete="off" placeholder="(optional) up to 64 chars" />
-                </div>
-                <div class="hint">0 to 64 characters (optional)</div>
-                <div class="err" id="st-key-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="st-hostname">
-                  Host Name
-                  <span class="tip" data-tip="1-16 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="st-hostname">
-                  <i class="fas fa-server"></i>
-                  <input id="st-hostname" type="text" autocomplete="off" placeholder="HostName (1-16)" />
-                </div>
-                <div class="hint">1 to 16 characters</div>
-                <div class="err" id="st-hostname-err"></div>
-              </div>
-
-              <div class="row2">
-                <div class="field">
-                  <label for="st-ip">IP Address (Read only)</label>
-                  <div class="inputIcon ro" data-field="st-ip">
-                    <i class="fas fa-sitemap"></i>
-                    <input id="st-ip" type="text" readonly tabindex="-1" />
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label for="st-macaddress">MAC Address (Read only)</label>
-                  <div class="inputIcon ro" data-field="st-macaddress">
-                    <i class="fas fa-ethernet"></i>
-                    <input id="st-macaddress" type="text" readonly tabindex="-1" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="field">
-                <label for="st-modemmac">Modem MAC (Read only)</label>
-                <div class="inputIcon ro" data-field="st-modemmac">
-                  <i class="fas fa-ethernet"></i>
-                  <input id="st-modemmac" type="text" readonly tabindex="-1" />
-                </div>
-              </div>
-            </fieldset>
-          </div>
-        </div>
-
-        <!-- Security -->
-        <div class="accItem" id="acc-sec">
-          <button class="accHead" type="button">
-            <span class="accIcon"><i class="fas fa-lock"></i></span>
-            <span class="accText">Security</span>
-          </button>
-
-          <div class="accBody">
-            <fieldset class="fs">
-              <legend>SECURITY</legend>
-
-              <div class="field">
-                <label for="sec-username">
-                  Username
-                  <span class="tip" data-tip="1-16 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="sec-username">
-                  <i class="fas fa-user"></i>
-                  <input id="sec-username" type="text" autocomplete="off" placeholder="Username (1-16)" />
-                </div>
-                <div class="hint">1 to 16 characters</div>
-                <div class="err" id="sec-username-err"></div>
-              </div>
-
-              <div class="field">
-                <label for="sec-password">
-                  Password
-                  <span class="tip" data-tip="1-16 chars, not empty"></span>
-                </label>
-                <div class="inputIcon" data-field="sec-password">
-                  <i class="fas fa-key"></i>
-                  <input id="sec-password" type="text" autocomplete="off" placeholder="Password (1-16)" />
-                </div>
-                <div class="hint">1 to 16 characters</div>
-                <div class="err" id="sec-password-err"></div>
-              </div>
-            </fieldset>
-          </div>
-        </div>
-
-        <!-- Reset Factory -->
-        <div class="accItem" id="acc-reset">
-          <button class="accHead" type="button">
-            <span class="accIcon"><i class="fas fa-rotate"></i></span>
-            <span class="accText">Reset Factory</span>
-          </button>
-
-          <div class="accBody">
-            <fieldset class="fs">
-              <legend>FACTORY RESET</legend>
-
-              <div class="resetWrap">
-                <button class="resetCircle" id="resetCircle" type="button" aria-label="Factory Reset">
-                  <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
-                    <circle class="ringBg" cx="60" cy="60" r="50"></circle>
-                    <circle class="ringBar" cx="60" cy="60" r="50"></circle>
-                  </svg>
-                  <div class="resetCenter">
-                    <div class="resetMain" id="resetMain">Start</div>
-                    <div class="resetSub" id="resetSub">Press to factory reset</div>
-                  </div>
-                </button>
-
-                <div class="resetText" id="resetText">Press to factory reset</div>
-              </div>
-            </fieldset>
-          </div>
-        </div>
-
-      </section>
-
-      <div class="toast" id="toast" aria-live="polite"></div>
-    </main>
-  </div>
+    </section>
+  </main>
 
   <script type="module" src="js/networksettings.js"></script>
 </body>

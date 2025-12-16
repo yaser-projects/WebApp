@@ -4,40 +4,48 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Remote Control</title>
+
   <link rel="stylesheet" href="css/common-style.css" />
   <link rel="stylesheet" href="css/deviceControl.css" />
 </head>
-<body class="page-device-control">
-  <div class="wrap">
-    <div class="card">
 
-      <div class="topbar">
-        <div class="back" title="Back" id="btnBack" role="button" aria-label="Back">
+<body class="page-device-control">
+  <main class="page-shell">
+    <section class="panel page-panel">
+
+      <!-- ✅ Header استاندارد مثل Status/AddDevice -->
+      <div class="app-header">
+        <!-- چپ: وضعیت -->
+        <div class="app-header__status" id="hdrStatus">
+          <span class="status-dot good" aria-hidden="true"></span>
+          <span class="app-header__status-text" id="hdrStatusText">Ready</span>
+        </div>
+
+        <!-- وسط: عنوان + زیرعنوان -->
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <div class="app-header__titles">
+              <div class="app-header__title" id="deviceTitle">Remote Control — Sample name</div>
+              <div class="app-header__subtitle">Buttons remote (A / B / C / D)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- راست: Back -->
+        <button class="icon-btn app-header__back" id="btnBack" type="button" aria-label="Back" title="Back">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M15 18l-6-6 6-6"
-              stroke="rgba(255,255,255,.85)"
+              stroke="currentColor"
               stroke-width="2.2"
               stroke-linecap="round"
               stroke-linejoin="round"/>
           </svg>
-        </div>
-
-        <div class="title-area">
-          <div class="title" id="deviceTitle">Remote Control — Sample name</div>
-          <div class="subtitle">Buttons remute (A / B / C / D)</div>
-        </div>
-
-        <div class="status">
-          <span class="dot" aria-hidden="true"></span>
-          <span>Ready</span>
-        </div>
+        </button>
       </div>
 
-      <div class="section">
-        <!-- فقط اسم دستگاه -->
+      <!-- Content -->
+      <div class="dc-section">
         <div class="device-name" id="deviceNameText">Sample name</div>
-
-        <!-- خط مرزبندی -->
         <div class="divider" aria-hidden="true"></div>
 
         <div class="buttons">
@@ -50,8 +58,8 @@
         <div class="footer-note">Remote Control • glass UI • circular buttons</div>
       </div>
 
-    </div>
-  </div>
+    </section>
+  </main>
 
   <script src="js/deviceControl.js"></script>
 </body>
