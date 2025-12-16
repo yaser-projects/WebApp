@@ -52,11 +52,12 @@ function fmtMHz(n) {
   return (x % 1 === 0) ? x.toFixed(0) : x.toFixed(2);
 }
 
+/** ✅ FIX: use variables from common-style.css: --status-good/warn/bad */
 function setStatus(kind, text) {
   el.statusDot.style.background =
-    kind === "scan" ? "var(--warn)" :
-    kind === "bad"  ? "var(--bad)"  :
-    "var(--good)";
+    kind === "scan" ? "var(--status-warn)" :
+    kind === "bad"  ? "var(--status-bad)"  :
+    "var(--status-good)";
   el.statusText.textContent = text;
 }
 
@@ -175,8 +176,9 @@ function ensureOption(selectEl, value, label) {
 function renderHits() {
   el.hitsList.innerHTML = "";
   if (!hits.length) {
+    // ✅ FIX: use --text-muted from common-style.css (not --muted)
     el.hitsList.innerHTML =
-      `<div style="color:var(--muted);font-size:12px;font-weight:900;padding:8px 2px;">No hits yet.</div>`;
+      `<div style="color:var(--text-muted);font-size:12px;font-weight:900;padding:8px 2px;">No hits yet.</div>`;
     return;
   }
 
@@ -358,7 +360,10 @@ document.addEventListener("DOMContentLoaded", () => {
   applyStepToSliders(getStepMHz());
 
   updateFillAndText();
-  setProgress(0);
+
+  // ✅ IMPORTANT: keep 0 if you want, but for visibility on load set 1
+  setProgress(1);
+
   setLastFreq(null);
   setSegment(1, 1);
   renderHits();
