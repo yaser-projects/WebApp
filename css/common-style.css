@@ -11,16 +11,32 @@
   --bg-primary: #050918;
   --bg-soft: #0b1224;
   --bg-card: rgba(16, 23, 47, 0.9);
+  --bg-gradient-1: #061a2a;
+  --bg-gradient-2: #071427;
+
   --accent: #05d0c5;
   --accent-soft: rgba(5, 208, 197, 0.2);
   --accent-strong: #02a79e;
+  --accent-alt: #2fe6b6;
+
   --danger: #ff4d4f;
   --success: #52c41a;
   --warning: #faad14;
+
   --text: #f4f4f4;
   --text-muted: #9aa0b5;
   --border: #20263a;
   --border-light: rgba(255, 255, 255, 0.1);
+
+  /* Glass effects */
+  --glass-a: rgba(255,255,255,.070);
+  --glass-b: rgba(255,255,255,.040);
+  --glass-border: rgba(255,255,255,.12);
+
+  /* Status colors */
+  --status-good: #35ffb0;
+  --status-warn: #ffd36a;
+  --status-bad: #ff6b6b;
 
   /* Spacing */
   --radius: 10px;
@@ -65,6 +81,45 @@ body {
   background-position: center;
   background-attachment: fixed;
   background-repeat: no-repeat;
+}
+
+/* ===== Background Patterns for Different Pages ===== */
+.page-dashboard body {
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
+    radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
+    radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, var(--bg-gradient-1), var(--bg-gradient-2));
+}
+
+.page-status body {
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .23), transparent 60%),
+    radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .20), transparent 60%),
+    radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, #041524, #061328);
+}
+
+.page-about body,
+.page-add-device body,
+.page-remote-scan body {
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(68, 164, 255, .25), transparent 60%),
+    radial-gradient(900px 600px at 80% 40%, rgba(104, 76, 255, .22), transparent 60%),
+    radial-gradient(900px 600px at 55% 90%, var(--accent-soft), transparent 60%),
+    linear-gradient(180deg, var(--bg-gradient-1), var(--bg-gradient-2));
+}
+
+.page-device-control body {
+  background:
+    radial-gradient(900px 600px at 50% 25%, rgba(47,230,182,.12), transparent 55%),
+    radial-gradient(800px 500px at 20% 70%, rgba(90,160,255,.10), transparent 55%),
+    linear-gradient(180deg, #071a2b, #0a2c3f);
+}
+
+.page-network-settings body {
+  background:
+    radial-gradient(circle at top, rgba(0, 20, 40, 0.8) 0%, rgba(2, 13, 26, 0.8) 80%);
 }
 
 /* ===== Typography ===== */
@@ -261,13 +316,27 @@ label {
 
 /* ===== Cards ===== */
 .card {
-  background: radial-gradient(circle at top, var(--bg-card), var(--bg-primary) 60%);
+  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   box-shadow: var(--shadow-soft);
-  padding: 24px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   position: relative;
   overflow: hidden;
+}
+
+.card-standard {
+  padding: 24px;
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .card::before {
@@ -303,6 +372,33 @@ label {
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+/* ===== Standard Component Classes ===== */
+.status-dot.good { background: var(--status-good); }
+.status-dot.warn { background: var(--status-warn); }
+.status-dot.bad { background: var(--status-bad); }
+
+.icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,.06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255,255,255,.085);
+  border-color: rgba(255,255,255,.18);
+}
+
+.icon-btn:active {
+  transform: translateY(0px) scale(.98);
 }
 
 /* ===== Progress Spinner ===== */

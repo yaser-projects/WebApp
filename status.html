@@ -4,16 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Status</title>
-  <link rel="stylesheet" href="CSS/status.css" />
+  <link rel="stylesheet" href="css/common-style.css" />
+  <link rel="stylesheet" href="css/status.css" />
 </head>
 
-<body>
+<body class="page-status">
   <main class="wrap">
     <section class="panel" aria-label="Status">
 
-      <div class="topActions">
-        <button class="btnTop" id="btnBack" type="button">Back to User Interface</button>
-      </div>
+            <header class="pill">
+        <div class="pill-left">
+          <button class="icon-btn back-btn" id="btnBack" type="button" title="Back" aria-label="Back">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6"></path>
+            </svg>
+          </button>
+
+          <div class="pill-text">
+            <div class="pill-title">Status</div>
+            <div class="pill-sub">device status • stored locally</div>
+          </div>
+        </div>
+      </header>
 
       <section class="card">
         <h2 class="title" id="titleClients">Active DHCP Clients (0 devices connected)</h2>

@@ -1,205 +1,168 @@
-/* === NETWORK SETTINGS PAGE === */
-/* Fixed scrolling + accordion visibility + consistent layout */
-
-body {
+/* Network Settings Styles */
+body.page-network-settings {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
   margin: 0;
   padding: 0;
-  background: radial-gradient(circle at top, #001428 0%, #020d1a 80%);
-  font-family: 'Segoe UI', sans-serif;
-  color: #bdefff;
-  overflow-x: hidden;
-  overflow-y: auto;
-  min-height: 100vh;
 }
 
-.container,
-.mainBox,
-.networkBox {
-  position: relative;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 100px 20px 60px 20px;
-  box-sizing: border-box;
-  min-height: 100vh;
-  overflow-y: auto;
-}
-
-h1 {
-  text-align: center;
-  font-size: 22px;
-  color: #00eaff;
-  margin-bottom: 20px;
-}
-
-#btnBack {
-  display: inline-block;
-  padding: 6px 20px;
-  font-size: 14px;
-  border: 1px solid #00eaff;
-  border-radius: 20px;
-  background: transparent;
-  color: #00eaff;
-  cursor: pointer;
-  transition: 0.2s;
-}
-#btnBack:hover {
-  background: #00eaff;
-  color: #001428;
-}
-
-/* Accordion Structure */
-.accItem {
-  border: 1px solid #005a77;
+.page {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  margin-bottom: 14px;
-  background: rgba(0, 20, 40, 0.65);
-  overflow: hidden;
-  transition: all 0.3s ease;
 }
 
-.accHead {
+.topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: #00eaff;
-  background: rgba(0, 30, 60, 0.9);
-  border-bottom: 1px solid #007b9f;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 8px 8px 0 0;
 }
 
-.accItem.active .accHead {
-  background: linear-gradient(90deg, #003950 0%, #007b9f 100%);
+.topBar .backBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.topBar .backBtn i {
+  margin-right: 5px;
+}
+
+.topBar .topTitle {
+  text-align: center;
+}
+
+.topBar .topTitle .t1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.topBar .topTitle .t2 {
+  font-size: 14px;
+  color: #ddd;
+}
+
+.card {
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.accordion {
+  border: none;
+  box-shadow: none;
+}
+
+.accItem {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.accHead {
+  background-color: #007bff;
+  color: #fff;
+  padding: 15px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.accHead .accIcon {
+  margin-right: 10px;
 }
 
 .accBody {
-  display: none;
-  padding: 18px;
-  animation: fadeIn 0.3s ease;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+  border-radius: 0 0 8px 8px;
 }
-.accItem.active .accBody {
+
+.fieldset {
+  border: none;
+  margin-bottom: 20px;
+}
+
+.legend {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.field {
+  margin-bottom: 15px;
+}
+
+.label {
   display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Form fields */
-fieldset {
-  border: 1px solid #006688;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 16px;
-}
-
-legend {
-  color: #00eaff;
-  font-size: 13px;
-  padding: 0 8px;
-}
-
-.inputIcon {
-  position: relative;
-  margin-bottom: 14px;
-}
-.inputIcon input,
-.inputIcon select {
+.input, select, textarea {
   width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  border-radius: 6px;
-  border: 1px solid #004a60;
-  background: rgba(0, 20, 40, 0.5);
-  color: #bdefff;
-  outline: none;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   box-sizing: border-box;
-  transition: 0.2s;
 }
-.inputIcon input:focus,
-.inputIcon select:focus {
-  border-color: #00eaff;
-  background: rgba(0, 25, 50, 0.7);
-}
-.inputIcon.error input {
-  border-color: #ff5555;
-  background: rgba(30, 0, 0, 0.3);
-}
-.errorText {
-  color: #ff5555;
+
+.hint {
   font-size: 12px;
-  margin-top: 4px;
+  color: #777;
+  margin-top: 5px;
 }
 
-/* Reset Section */
-#resetCircle {
-  width: 120px;
-  height: 120px;
-  margin: 25px auto;
-  display: block;
-  border-radius: 50%;
-  border: 2px solid #00eaff;
-  color: #00eaff;
-  font-size: 20px;
-  text-align: center;
-  line-height: 116px;
-  cursor: pointer;
-  position: relative;
-  transition: 0.3s;
-}
-#resetCircle:hover {
-  background: rgba(0, 234, 255, 0.2);
-}
-#resetText {
-  text-align: center;
-  font-size: 13px;
-  color: #bdefff;
-  margin-top: 10px;
+.err {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
 }
 
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 25px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #004a60;
-  color: #bdefff;
+.actions {
+  text-align: right;
+}
+
+.btn {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
   padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 13px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-.toast.ok {
-  background: #00c97a;
-  color: #fff;
-  opacity: 1;
-}
-.toast.bad {
-  background: #d9534f;
-  color: #fff;
-  opacity: 1;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-/* State text (top right) */
-#wsState {
-  position: fixed;
-  top: 20px;
-  right: 25px;
-  font-size: 13px;
-  color: #ff6666;
+.btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
-#wsState.connected {
-  color: #00ff88;
+
+.footNote {
+  font-size: 12px;
+  color: #777;
+  text-align: center;
+  margin-top: 20px;
+}
+
+
+.accItem .accBody{
+  display: none;
+}
+
+
+.accItem.active .accBody{
+  display: block;
 }
