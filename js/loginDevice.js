@@ -1,3 +1,5 @@
+import { connectWebSocket } from "./ws.js";
+
 (() => {
   const $ = (id) => document.getElementById(id);
 
@@ -44,7 +46,7 @@
     btnLogin.disabled = !(isValidField(inpUser.value) && isValidField(inpPass.value));
   };
 
-  // Enforce alnum-only typing
+  // enforce typing alnum
   inpUser.addEventListener("input", () => {
     const s = sanitizeAlnum(inpUser.value).slice(0, 16);
     if (inpUser.value !== s) inpUser.value = s;
@@ -57,7 +59,7 @@
     updateLoginButtonState();
   });
 
-  // Eye toggle (with icon swap)
+  // eye toggle (SVG)
   $("togglePass").addEventListener("click", () => {
     const el = $("devicePass");
     const eyeOpen = $("eyeOpen");
@@ -72,59 +74,59 @@
     }
   });
 
-  // Stored credentials received on load
+  // ------------------------------------------------
+  // WebSocket wiring (REAL) - based on ws.js
+  // ------------------------------------------------
+  let ws = null;
+
+  // Stored credentials received on load (per PDF)
   let storedCredentials = { username: "", password: "" };
 
-  // Bridge (MAUI/ws.js)
-  const sendMessage = async (payload) => {
-    if (window.MBHost && typeof window.MBHost.sendMessage === "function") {
-      return await window.MBHost.sendMessage(payload);
-    }
-    if (typeof window.wsSend === "function") {
-      return window.wsSend(payload);
-    }
-    console.warn("No sendMessage bridge found. Payload:", payload);
-    return null;
-  };
+  // Listen to ws.js window events
+  // - net-sec:read => contains username/password
+  // - net-ap:read  => contains AP SSID
+  window.addEventListener("net-sec:read", (ev) => {
+    const data = ev?.detail;
+    if (!data || typeof data !== "object") return;
 
-  // Called by host/ws when a JSON arrives
-  window.loginDevice_onMessage = (data) => {
-    try {
-      const obj = (typeof data === "string") ? JSON.parse(data) : data;
-      if (!obj || typeof obj !== "object") return;
+    if (typeof data.username === "string" && typeof data.password === "string") {
+      storedCredentials.username = data.username;
+      storedCredentials.password = data.password;
 
-      if (typeof obj.username === "string" && typeof obj.password === "string") {
-        storedCredentials.username = obj.username;
-        storedCredentials.password = obj.password;
+      // show in fields
+      inpUser.value = sanitizeAlnum(data.username).slice(0, 16);
+      inpPass.value = sanitizeAlnum(data.password).slice(0, 16);
 
-        inpUser.value = sanitizeAlnum(obj.username).slice(0, 16);
-        inpPass.value = sanitizeAlnum(obj.password).slice(0, 16);
-        updateLoginButtonState();
-        return;
-      }
-
-      if (typeof obj["AP SSID"] === "string") {
-        const ssid = obj["AP SSID"];
-        window.location.href = (ssid === "Metal Brain") ? "quickstart.html" : "dashboard.html";
-      }
-    } catch (e) {
-      console.error("loginDevice_onMessage parse error:", e);
-    }
-  };
-
-  // Load: read username/password
-  document.addEventListener("DOMContentLoaded", async () => {
-    updateLoginButtonState();
-    busy(true);
-    try {
-      await sendMessage({ setting: "device", action: "read", fields: ["username", "password"] });
-    } finally {
-      busy(false);
+      updateLoginButtonState();
     }
   });
 
-  // Login click
-  btnLogin.addEventListener("click", async () => {
+  window.addEventListener("net-ap:read", (ev) => {
+    const data = ev?.detail;
+    if (!data || typeof data !== "object") return;
+
+    if (typeof data["AP SSID"] === "string") {
+      const ssid = data["AP SSID"];
+      window.location.href = (ssid === "Metal Brain") ? "quickstart.html" : "dashboard.html";
+    }
+  });
+
+  // Connect and read credentials on open
+  const initWS = () => {
+    ws = connectWebSocket({
+      onOpen: (conn) => {
+        // Load event requirement (PDF): read username/password
+        // equivalent method exists in ws.js:
+        // conn.networkSecurityRead()
+        busy(true);
+        conn.networkSecurityRead();
+        setTimeout(() => busy(false), 250);
+      }
+    });
+  };
+
+  // Login click logic (per PDF)
+  btnLogin.addEventListener("click", () => {
     clearErrors();
 
     const username = inpUser.value;
@@ -139,12 +141,18 @@
       return;
     }
 
-    busy(true);
-    try {
-      await sendMessage({ setting: "device", action: "read", fields: ["AP SSID"] });
-      // routing happens when AP SSID message arrives -> loginDevice_onMessage
-    } finally {
-      busy(false);
+    // If credentials OK: read AP SSID then route
+    if (!ws) {
+      showBanner("WebSocket is not connected.");
+      return;
     }
+
+    busy(true);
+    ws.sendJSON({ setting: "device", action: "read", fields: ["AP SSID"] });
+    setTimeout(() => busy(false), 250);
   });
+
+  // init
+  updateLoginButtonState();
+  initWS();
 })();
