@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" class="page-register">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>User Registration</title>
+
+  <link rel="stylesheet" href="css/common-style.css" />
+  <link rel="stylesheet" href="css/register.css" />
+</head>
+
+<body>
+  <div id="busy" class="center-spinner hidden" aria-hidden="true">
+    <div class="spinner" role="status" aria-label="Loading"></div>
+  </div>
+
+  <div class="page-shell">
+    <div class="page-panel panel">
+
+      <div class="app-header">
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <div class="app-header__dot" aria-hidden="true"></div>
+            <div class="app-header__titles">
+              <div class="app-header__title">User Registration</div>
+              <div class="app-header__subtitle">Create your account</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-header__status">
+          <span class="badge"><span></span>Server</span>
+        </div>
+      </div>
+
+      <div id="banner" class="login-banner hidden" role="alert"></div>
+
+      <div class="card card-standard">
+        <div class="card-inner">
+
+          <section id="viewRegister">
+
+            <!-- Full name -->
+            <div class="field">
+              <label for="fullName">Full name</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 13a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </span>
+                <input id="fullName" type="text" placeholder="e.g. Ali Mohammadi" autocomplete="name" maxlength="40" />
+              </div>
+              <div class="field-help">2–40 characters</div>
+              <small class="error-msg" id="errFullName"></small>
+            </div>
+
+            <!-- Username -->
+            <div class="field">
+              <label for="username">Username</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 20h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 20V9a4 4 0 0 1 8 0v11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <input id="username" type="text" placeholder="3–16: A–Z, 0–9, _ ." autocomplete="username" maxlength="16"
+                       title="3–16 characters (A–Z, 0–9, _ .)" />
+              </div>
+              <div class="field-help">3–16 characters (A–Z, 0–9, _ .)</div>
+              <small class="error-msg" id="errUsername"></small>
+            </div>
+
+            <!-- Mobile -->
+            <div class="field">
+              <label for="mobile">Mobile</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 2h8v20H8V2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M10 19h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </span>
+                <input id="mobile" type="tel" placeholder="e.g. +98 912 000 0000" autocomplete="tel" maxlength="20" />
+              </div>
+              <div class="field-help">At least 8 digits ( + allowed )</div>
+              <small class="error-msg" id="errMobile"></small>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+              <label for="email">Email</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 6h16v12H4V6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <input id="email" type="email" placeholder="name@example.com" autocomplete="email" maxlength="60" />
+              </div>
+              <div class="field-help">Valid email address</div>
+              <small class="error-msg" id="errEmail"></small>
+            </div>
+
+            <!-- Password -->
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 11h12v10H6V11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+
+                <input id="password" type="password" placeholder="Min 8 characters" autocomplete="new-password" maxlength="64" />
+
+                <button class="right-btn" id="togglePass" type="button" aria-label="Show/Hide password">
+                  <svg id="eyeOpen" class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg id="eyeOff" class="ico hidden" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M2 12s4-7 10-7c2.2 0 4.1.8 5.7 1.9M22 12s-4 7-10 7c-2.2 0-4.1-.8-5.7-1.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10.5 10.5a3 3 0 0 0 3.9 3.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="field-help">Min 8 characters</div>
+              <small class="error-msg" id="errPassword"></small>
+            </div>
+
+            <!-- Confirm -->
+            <div class="field">
+              <label for="confirm">Confirm password</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon" aria-hidden="true">
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <input id="confirm" type="password" placeholder="Repeat password" autocomplete="new-password" maxlength="64" />
+              </div>
+              <div class="field-help">Must match password</div>
+              <small class="error-msg" id="errConfirm"></small>
+            </div>
+
+            <!-- Agreement -->
+            <div class="check-row">
+              <label class="check">
+                <input id="agree" type="checkbox" />
+                <span>I agree to the Terms & Privacy</span>
+              </label>
+            </div>
+
+            <div class="action-row">
+              <button class="btn secondary" id="btnGoLogin" type="button">Back to Login</button>
+              <button class="btn primary" id="btnRegister" type="button" disabled>Create account</button>
+            </div>
+
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/register.js"></script>
+</body>
+</html>

@@ -1,7 +1,14 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
-  // --- UI helpers
+  // Validation: English letters + numbers only, length 1..16
+  const sanitizeAlnum = (v) => String(v || "").replace(/[^a-zA-Z0-9]/g, "");
+  const isValidField = (v) => {
+    const s = String(v || "");
+    if (s.length < 1 || s.length > 16) return false;
+    return /^[a-zA-Z0-9]+$/.test(s);
+  };
+
   const busy = (on) => {
     const el = $("busy");
     if (!el) return;
@@ -29,141 +36,15 @@
     if (err) err.textContent = msg;
   };
 
-  const togglePass = (inputId) => {
-    const el = $(inputId);
-    if (!el) return;
-    el.type = (el.type === "password") ? "text" : "password";
-  };
-
-  // --- Validation (English letters + numbers only, length 1..16)
-  const sanitizeAlnum = (v) => String(v || "").replace(/[^a-zA-Z0-9]/g, "");
-  const isValidField = (v) => {
-    const s = String(v || "");
-    if (s.length < 1 || s.length > 16) return false;
-    return /^[a-zA-Z0-9]+$/.test(s);
-  };
-
   const btnLogin = $("btnLoginDevice");
   const inpUser = $("deviceUser");
   const inpPass = $("devicePass");
 
   const updateLoginButtonState = () => {
-    const u = inpUser.value;
-    const p = inpPass.value;
-    const ok = isValidField(u) && isValidField(p);
-    btnLogin.disabled = !ok;
+    btnLogin.disabled = !(isValidField(inpUser.value) && isValidField(inpPass.value));
   };
 
-  // --- Device stored credentials received on load
-  // MUST be kept for final compare on Login click (per PDF)
-  let storedCredentials = { username: "", password: "" };
-
-  // --- Messaging bridge (MAUI / ws.js should implement one of these)
-  // Prefer: window.MBHost.sendMessage(payload)  OR  window.wsSend(payload)
-  const sendMessage = async (payload) => {
-    // 1) MAUI host bridge
-    if (window.MBHost && typeof window.MBHost.sendMessage === "function") {
-      return await window.MBHost.sendMessage(payload);
-    }
-
-    // 2) A global wsSend helper (if you have it)
-    if (typeof window.wsSend === "function") {
-      return window.wsSend(payload);
-    }
-
-    // 3) last fallback (for browser demo)
-    console.warn("No sendMessage bridge found. Payload:", payload);
-    return null;
-  };
-
-  // This function should be called by MAUI/ws.js when a JSON message arrives
-  // Example incoming: {"username":"admin","password":"admin"} OR {"AP SSID":"Metal Brain"}
-  window.loginDevice_onMessage = (data) => {
-    try {
-      const obj = (typeof data === "string") ? JSON.parse(data) : data;
-      if (!obj || typeof obj !== "object") return;
-
-      // Credentials read response
-      if (typeof obj.username === "string" && typeof obj.password === "string") {
-        storedCredentials.username = obj.username;
-        storedCredentials.password = obj.password;
-
-        // show in fields (per PDF)
-        inpUser.value = sanitizeAlnum(obj.username).slice(0, 16);
-        inpPass.value = sanitizeAlnum(obj.password).slice(0, 16);
-
-        updateLoginButtonState();
-        return;
-      }
-
-      // AP SSID read response
-      if (typeof obj["AP SSID"] === "string") {
-        const ssid = obj["AP SSID"];
-        if (ssid === "Metal Brain") {
-          window.location.href = "quickstart.html";
-        } else {
-          window.location.href = "dashboard.html";
-        }
-      }
-    } catch (e) {
-      console.error("loginDevice_onMessage parse error:", e);
-    }
-  };
-
-  // --- Load event: send read for username/password (per PDF)
-  const readCredentialsOnLoad = async () => {
-    busy(true);
-    try {
-      await sendMessage({
-        setting: "device",
-        action: "read",
-        fields: ["username", "password"]
-      });
-    } finally {
-      busy(false);
-    }
-  };
-
-  // --- Login click: validate + compare with stored + read AP SSID then route
-  const doLogin = async () => {
-    clearErrors();
-
-    const username = inpUser.value;
-    const password = inpPass.value;
-
-    // validate emptiness + range + allowed chars
-    if (!isValidField(username)) {
-      setError("deviceUser", "errDeviceUser", "Username must be 1–16 characters (A–Z, 0–9).");
-    }
-    if (!isValidField(password)) {
-      setError("devicePass", "errDevicePass", "Password must be 1–16 characters (A–Z, 0–9).");
-    }
-    if (!isValidField(username) || !isValidField(password)) return;
-
-    // compare with stored credentials
-    if (username !== storedCredentials.username || password !== storedCredentials.password) {
-      showBanner("Invalid username or password.");
-      return;
-    }
-
-    // If OK: read AP SSID then route based on response
-    busy(true);
-    try {
-      await sendMessage({
-        setting: "device",
-        action: "read",
-        fields: ["AP SSID"]
-      });
-      // routing happens when "AP SSID" message arrives → loginDevice_onMessage
-    } finally {
-      busy(false);
-    }
-  };
-
-  // --- Wire events
-  $("togglePass").addEventListener("click", () => togglePass("devicePass"));
-
-  // Enforce alnum-only on typing (and keep length <=16)
+  // Enforce alnum-only typing
   inpUser.addEventListener("input", () => {
     const s = sanitizeAlnum(inpUser.value).slice(0, 16);
     if (inpUser.value !== s) inpUser.value = s;
@@ -176,9 +57,94 @@
     updateLoginButtonState();
   });
 
-  btnLogin.addEventListener("click", doLogin);
+  // Eye toggle (with icon swap)
+  $("togglePass").addEventListener("click", () => {
+    const el = $("devicePass");
+    const eyeOpen = $("eyeOpen");
+    const eyeOff  = $("eyeOff");
 
-  // Init
-  updateLoginButtonState();
-  document.addEventListener("DOMContentLoaded", readCredentialsOnLoad);
+    const toText = el.type === "password";
+    el.type = toText ? "text" : "password";
+
+    if (eyeOpen && eyeOff) {
+      eyeOpen.classList.toggle("hidden", toText);
+      eyeOff.classList.toggle("hidden", !toText);
+    }
+  });
+
+  // Stored credentials received on load
+  let storedCredentials = { username: "", password: "" };
+
+  // Bridge (MAUI/ws.js)
+  const sendMessage = async (payload) => {
+    if (window.MBHost && typeof window.MBHost.sendMessage === "function") {
+      return await window.MBHost.sendMessage(payload);
+    }
+    if (typeof window.wsSend === "function") {
+      return window.wsSend(payload);
+    }
+    console.warn("No sendMessage bridge found. Payload:", payload);
+    return null;
+  };
+
+  // Called by host/ws when a JSON arrives
+  window.loginDevice_onMessage = (data) => {
+    try {
+      const obj = (typeof data === "string") ? JSON.parse(data) : data;
+      if (!obj || typeof obj !== "object") return;
+
+      if (typeof obj.username === "string" && typeof obj.password === "string") {
+        storedCredentials.username = obj.username;
+        storedCredentials.password = obj.password;
+
+        inpUser.value = sanitizeAlnum(obj.username).slice(0, 16);
+        inpPass.value = sanitizeAlnum(obj.password).slice(0, 16);
+        updateLoginButtonState();
+        return;
+      }
+
+      if (typeof obj["AP SSID"] === "string") {
+        const ssid = obj["AP SSID"];
+        window.location.href = (ssid === "Metal Brain") ? "quickstart.html" : "dashboard.html";
+      }
+    } catch (e) {
+      console.error("loginDevice_onMessage parse error:", e);
+    }
+  };
+
+  // Load: read username/password
+  document.addEventListener("DOMContentLoaded", async () => {
+    updateLoginButtonState();
+    busy(true);
+    try {
+      await sendMessage({ setting: "device", action: "read", fields: ["username", "password"] });
+    } finally {
+      busy(false);
+    }
+  });
+
+  // Login click
+  btnLogin.addEventListener("click", async () => {
+    clearErrors();
+
+    const username = inpUser.value;
+    const password = inpPass.value;
+
+    if (!isValidField(username)) setError("deviceUser", "errDeviceUser", "Username must be 1–16 characters (A–Z, 0–9).");
+    if (!isValidField(password)) setError("devicePass", "errDevicePass", "Password must be 1–16 characters (A–Z, 0–9).");
+    if (!isValidField(username) || !isValidField(password)) return;
+
+    if (username !== storedCredentials.username || password !== storedCredentials.password) {
+      showBanner("Invalid username or password.");
+      return;
+    }
+
+    busy(true);
+    try {
+      await sendMessage({ setting: "device", action: "read", fields: ["AP SSID"] });
+      // routing happens when AP SSID message arrives -> loginDevice_onMessage
+    } finally {
+      busy(false);
+    }
+  });
 })();

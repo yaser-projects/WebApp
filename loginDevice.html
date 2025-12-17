@@ -8,9 +8,6 @@
   <!-- Shared theme -->
   <link rel="stylesheet" href="css/common-style.css" />
 
-  <!-- FontAwesome offline (مسیر را مطابق پروژه خودت تنظیم کن) -->
-  <link rel="stylesheet" href="css/all.min.css" />
-
   <!-- Page CSS -->
   <link rel="stylesheet" href="css/loginDevice.css" />
 </head>
@@ -50,8 +47,12 @@
             <div class="field">
               <label for="deviceUser">Username</label>
               <div class="field-icon-wrapper">
+
                 <span class="left-icon" aria-hidden="true">
-                  <i class="fa-solid fa-user"></i>
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 21a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 13a5 5 0 1 0-5-5 5 5 0 0 0 5 5Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
                 </span>
 
                 <input id="deviceUser"
@@ -61,8 +62,7 @@
                        placeholder="Enter username"
                        minlength="1"
                        maxlength="16"
-                       title="Username: 1–16 characters (A–Z, 0–9)"
-                />
+                       title="Username: 1–16 characters (A–Z, 0–9)" />
               </div>
 
               <div class="field-help">1–16 characters (A–Z, 0–9)</div>
@@ -72,8 +72,12 @@
             <div class="field">
               <label for="devicePass">Password</label>
               <div class="field-icon-wrapper">
+
                 <span class="left-icon" aria-hidden="true">
-                  <i class="fa-solid fa-lock"></i>
+                  <svg class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 11V8a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M6 11h12v10H6V11Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  </svg>
                 </span>
 
                 <input id="devicePass"
@@ -82,11 +86,18 @@
                        placeholder="Enter password"
                        minlength="1"
                        maxlength="16"
-                       title="Password: 1–16 characters (A–Z, 0–9)"
-                />
+                       title="Password: 1–16 characters (A–Z, 0–9)" />
 
                 <button class="right-btn" id="togglePass" type="button" aria-label="Show/Hide password" title="Show/Hide Password">
-                  <i class="fa-solid fa-eye"></i>
+                  <svg id="eyeOpen" class="ico" viewBox="0 0 24 24" fill="none">
+                    <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg id="eyeOff" class="ico hidden" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M2 12s4-7 10-7c2.2 0 4.1.8 5.7 1.9M22 12s-4 7-10 7c-2.2 0-4.1-.8-5.7-1.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10.5 10.5a3 3 0 0 0 3.9 3.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
                 </button>
               </div>
 
@@ -96,10 +107,7 @@
 
             <div class="login-row">
               <div class="text-muted hint">Tip: Use device credentials.</div>
-
-              <button class="btn primary" id="btnLoginDevice" type="button" disabled>
-                Login
-              </button>
+              <button class="btn primary" id="btnLoginDevice" type="button" disabled>Login</button>
             </div>
 
           </section>
