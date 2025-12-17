@@ -1,22 +1,48 @@
 /* ============================================
-   Metal Brain - QuickStart Page Styles
+   Metal Brain - QuickStart Page Styles (FIX)
+   Make QuickStart look like other pages (panel + card)
    ============================================ */
 
+:root{
+  /* reuse common layout vars if present */
+  --qs-max-width: var(--page-max-width, 760px);
+  --qs-panel-pad: var(--panel-pad, 22px);
+}
+
+/* Outer frame like .page-shell + .page-panel.panel */
 .qs-container {
-  max-width: 760px;
+  width: min(var(--qs-max-width), 95vw);
+  min-height: auto;
+
   margin: 0 auto;
-  padding: 32px 20px;
-  min-height: 100vh;
+  padding: var(--qs-panel-pad);
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+
+  gap: 16px;
+
+  /* PANEL look (same as common .panel) */
+  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
+/* Put container in center like other pages */
+body {
+  justify-content: center; /* common-style makes body flex column */
+}
+
+/* Header area (keep your existing design but make spacing consistent) */
 .qs-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 4px;
+  width: 100%;
 }
 
 .qs-header-title {
@@ -34,31 +60,51 @@
 
 .qs-sub {
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   font-size: 0.9rem;
 }
 
+/* Make the wizard box look like a real "card" */
 .qs-card {
   position: relative;
-  margin: 0 auto 30px auto;
-  max-width: 520px;
   width: 100%;
-  padding: 20px;
+  max-width: 560px;
+
+  /* CARD look (same as common .card) */
+  background: linear-gradient(180deg, var(--glass-a), var(--glass-b));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  overflow: hidden;
+  padding: 22px;
+}
+
+/* soft glow like common .card::before */
+.qs-card::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 10% 0, var(--accent-soft), transparent 55%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.qs-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Steps */
-.qs-step {
-  display: none;
-}
-
-.qs-step.active {
-  display: block;
-}
+.qs-step { display: none; }
+.qs-step.active { display: block; }
 
 fieldset {
   border: none;
   padding: 0;
-  margin: 0 0 20px 0;
+  margin: 0 0 18px 0;
 }
 
 legend {
@@ -66,14 +112,14 @@ legend {
   text-align: left;
   font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 
 .step-content {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   color: var(--text-muted);
   font-size: 0.9rem;
   text-align: left;
@@ -86,14 +132,10 @@ legend {
   line-height: 1.8;
 }
 
-.step-content li {
-  margin-bottom: 8px;
-}
+.step-content li { margin-bottom: 8px; }
 
 /* Fields */
-.qs-field {
-  margin-bottom: 18px;
-}
+.qs-field { margin-bottom: 18px; }
 
 .qs-field label {
   display: block;
@@ -103,6 +145,7 @@ legend {
   font-weight: 500;
 }
 
+/* Keep your input-wrap but align with common feel */
 .input-wrap {
   position: relative;
   display: flex;
@@ -113,7 +156,6 @@ legend {
   padding: 0 12px;
   transition: all var(--transition);
   width: 100%;
-  max-width: 480px;
 }
 
 .input-wrap:focus-within {
@@ -138,17 +180,6 @@ legend {
   color: var(--text);
   font-size: 0.9rem;
 }
-.input-wrap select {
-  cursor: pointer;
-  color: #0b1224;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: var(--radius-sm);
-  padding: 10px 8px;
-}
-.input-wrap select option {
-  background: #ffffff;
-  color: #0b1224;
-}
 
 .input-wrap input:focus,
 .input-wrap select:focus {
@@ -156,6 +187,20 @@ legend {
   box-shadow: none;
 }
 
+.input-wrap select {
+  cursor: pointer;
+  color: #0b1224;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+}
+
+.input-wrap select option {
+  background: #ffffff;
+  color: #0b1224;
+}
+
+/* Errors */
 .error {
   display: block;
   color: var(--danger);
@@ -181,14 +226,13 @@ legend {
 }
 
 .qs-field-inline input[type="checkbox"] {
-  width: auto;
-  margin: 0;
-  cursor: pointer;
   width: 18px;
   height: 18px;
+  margin: 0;
+  cursor: pointer;
 }
 
-/* Step 2: Access Point - Hidden Network at top right */
+/* Step 2: Hidden network top right (keep) */
 #step2 .qs-field-inline:first-child {
   position: absolute;
   top: 18px;
@@ -196,22 +240,18 @@ legend {
   margin: 0;
 }
 
-#step2 fieldset {
-  padding-top: 50px;
-}
+#step2 fieldset { padding-top: 50px; }
 
-/* Step Actions */
+/* Step Actions (buttons on the right) */
 .step-actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 22px;
 }
 
 /* Summary Table */
-.summary-table {
-  margin: 20px 0;
-}
+.summary-table { margin: 18px 0; }
 
 .summary-table dl {
   display: grid;
@@ -237,7 +277,7 @@ legend {
   display: flex;
   justify-content: center;
   gap: 10px;
-  margin-top: 30px;
+  margin-top: 8px;
 }
 
 .dot {
@@ -248,47 +288,29 @@ legend {
   transition: background var(--transition);
 }
 
-.dot.active {
-  background: var(--accent);
-}
+.dot.active { background: var(--accent); }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .qs-container {
-    padding: 20px 12px;
-  }
-  .qs-card {
-    max-width: 100%;
-  }
-  .qs-header h1 {
-    font-size: 1.6rem;
-  }
-  .summary-table dl {
-    grid-template-columns: 140px 1fr;
-    gap: 10px 12px;
-  }
-  .input-wrap {
-    max-width: 100%;
-  }
+  .qs-container { padding: 18px 14px; }
+  .qs-card { max-width: 100%; padding: 18px; }
+  .qs-header h1 { font-size: 1.6rem; }
+  .summary-table dl { grid-template-columns: 140px 1fr; gap: 10px 12px; }
 }
 
 @media (max-width: 480px) {
-  .qs-card {
-    padding: 16px;
-  }
+  body { justify-content: flex-start; }
+  .qs-container { margin-top: 18px; }
+  .qs-card { padding: 16px; }
+
   #step2 .qs-field-inline:first-child {
     position: static;
     margin-bottom: 18px;
   }
-  #step2 fieldset {
-    padding-top: 0;
-  }
+  #step2 fieldset { padding-top: 0; }
+
   .summary-table dl {
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  .summary-table dt {
-    margin-bottom: 4px;
-  }
 }
-
