@@ -1,10 +1,11 @@
-/* Very small, page-only additions */
+/* Keep it minimal; common-style.css is the main theme */
+
 .login-row{
   display:flex;
   justify-content: space-between;
   align-items:center;
   gap:12px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .login-banner{
@@ -17,3 +18,17 @@
 }
 
 .hint{ font-size: .85rem; }
+
+.field-help{
+  margin-top: 6px;
+  font-size: .82rem;
+  opacity: .75;
+}
+
+/* error highlight */
+input.error{
+  border-color: rgba(255, 77, 79, .7) !important;
+  box-shadow: 0 0 0 2px rgba(255, 77, 79, .18);
+}
+
+
