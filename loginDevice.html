@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" class="page-login-device">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login to Device</title>
+
+  <link rel="stylesheet" href="css/common-style.css" />
+  <link rel="stylesheet" href="css/loginDevice.css" />
+</head>
+
+<body>
+  <div id="busy" class="center-spinner hidden" aria-hidden="true">
+    <div class="spinner" role="status" aria-label="Loading"></div>
+  </div>
+
+  <div class="page-shell">
+    <div class="page-panel panel">
+
+      <div class="app-header">
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <div class="app-header__dot" aria-hidden="true"></div>
+            <div class="app-header__titles">
+              <div class="app-header__title">Login to Device</div>
+              <div class="app-header__subtitle">Local device authentication</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-header__status">
+          <span class="badge" id="modeBadge"><span></span>Device</span>
+        </div>
+      </div>
+
+      <div id="banner" class="login-banner hidden" role="alert"></div>
+
+      <div class="card card-standard">
+        <div class="card-inner">
+
+          <section id="viewLoginDevice">
+            <div class="field">
+              <label for="deviceUser">Username</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon">👤</span>
+                <input id="deviceUser" type="text" autocomplete="username" placeholder="admin" />
+              </div>
+              <small class="error-msg" id="errDeviceUser"></small>
+            </div>
+
+            <div class="field">
+              <label for="devicePass">Password</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon">🔒</span>
+                <input id="devicePass" type="password" autocomplete="current-password" placeholder="Enter device password" />
+                <button class="right-btn" id="togglePass" type="button" aria-label="Show/Hide password">👁</button>
+              </div>
+              <small class="error-msg" id="errDevicePass"></small>
+            </div>
+
+            <div class="login-row">
+              <div class="text-muted hint">
+                Tip: Use your device credentials.
+              </div>
+              <button class="btn primary" id="btnLoginDevice" type="button">Login</button>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/loginDevice.js"></script>
+</body>
+</html>

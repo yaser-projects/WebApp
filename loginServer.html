@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" class="page-login-server">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login to Server</title>
+
+  <!-- Shared theme -->
+  <link rel="stylesheet" href="css/common-style.css" />
+
+  <!-- Page-specific tweaks (very small) -->
+  <link rel="stylesheet" href="css/loginServer.css" />
+</head>
+
+<body>
+  <!-- Center spinner (shared class from common-style) -->
+  <div id="busy" class="center-spinner hidden" aria-hidden="true">
+    <div class="spinner" role="status" aria-label="Loading"></div>
+  </div>
+
+  <div class="page-shell">
+    <div class="page-panel panel">
+      <div class="app-header">
+        
+
+        <div class="app-header__main">
+          <div class="app-header__title-row">
+            <div class="app-header__dot" aria-hidden="true"></div>
+            <div class="app-header__titles">
+              <div class="app-header__title">Login to Server</div>
+              <div class="app-header__subtitle">Remote access authentication</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-header__status">
+          <span class="badge" id="modeBadge"><span></span>Server</span>
+        </div>
+      </div>
+
+      <!-- Banner -->
+      <div id="banner" class="login-banner hidden" role="alert"></div>
+
+      <!-- CARD -->
+      <div class="card card-standard">
+        <div class="card-inner">
+
+          <!-- LOGIN VIEW -->
+          <section id="viewLogin">
+            <div class="segmented" role="tablist" aria-label="Login method">
+              <button class="seg-btn active" id="tabUsername" type="button" role="tab" aria-selected="true">
+                Username
+              </button>
+              <button class="seg-btn" id="tabPhone" type="button" role="tab" aria-selected="false">
+                Phone
+              </button>
+            </div>
+
+            <div class="mt-2"></div>
+
+            <div class="field" id="fieldUsername">
+              <label for="username">Username</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon">👤</span>
+                <input id="username" type="text" autocomplete="username" placeholder="Enter your username" />
+              </div>
+              <small class="error-msg" id="errUsername"></small>
+            </div>
+
+            <div class="field hidden" id="fieldPhone">
+              <label for="phone">Phone number</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon">📱</span>
+                <input id="phone" type="tel" autocomplete="tel" placeholder="e.g. +98 912 000 0000" />
+              </div>
+              <small class="error-msg" id="errPhone"></small>
+            </div>
+
+            <div class="field">
+              <label for="password">Password</label>
+              <div class="field-icon-wrapper">
+                <span class="left-icon">🔒</span>
+                <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password" />
+                <button class="right-btn" id="togglePass" type="button" aria-label="Show/Hide password">👁</button>
+              </div>
+              <small class="error-msg" id="errPassword"></small>
+            </div>
+
+            <div class="login-row">
+              <button class="btn secondary" id="btnForgot" type="button">Forgot password?</button>
+              <button class="btn primary" id="btnLogin" type="button">Login</button>
+            </div>
+
+            <div class="text-muted mt-2 hint">
+              Tip: Use Username or Phone to sign in.
+            </div>
+          </section>
+
+          <!-- FORGOT VIEW -->
+          <section id="viewForgot" class="hidden">
+            <h3 class="mb-2">Reset your password</h3>
+
+            <!-- Step 1: choose channel -->
+            <div id="fgStep1">
+              <p class="text-muted mb-2">Choose how you want to receive the verification code:</p>
+
+              <div class="segmented" role="tablist" aria-label="Reset method">
+                <button class="seg-btn active" id="tabEmailReset" type="button" role="tab" aria-selected="true">
+                  Email
+                </button>
+                <button class="seg-btn" id="tabPhoneReset" type="button" role="tab" aria-selected="false">
+                  SMS
+                </button>
+              </div>
+
+              <div class="mt-2"></div>
+
+              <div class="field" id="fieldEmailReset">
+                <label for="emailReset">Email address</label>
+                <div class="field-icon-wrapper">
+                  <span class="left-icon">✉️</span>
+                  <input id="emailReset" type="email" autocomplete="email" placeholder="name@example.com" />
+                </div>
+                <small class="error-msg" id="errEmailReset"></small>
+              </div>
+
+              <div class="field hidden" id="fieldPhoneReset">
+                <label for="phoneReset">Phone number</label>
+                <div class="field-icon-wrapper">
+                  <span class="left-icon">📱</span>
+                  <input id="phoneReset" type="tel" autocomplete="tel" placeholder="e.g. +98 912 000 0000" />
+                </div>
+                <small class="error-msg" id="errPhoneReset"></small>
+              </div>
+
+              <div class="login-row">
+                <button class="btn secondary" id="btnBackToLogin1" type="button">Back</button>
+                <button class="btn primary" id="btnSendCode" type="button">Send code</button>
+              </div>
+            </div>
+
+            <!-- Step 2: verify code -->
+            <div id="fgStep2" class="hidden">
+              <p class="text-muted mb-2">Enter the verification code you received.</p>
+
+              <div class="field">
+                <label for="verifyCode">Verification code</label>
+                <div class="field-icon-wrapper">
+                  <span class="left-icon">🔢</span>
+                  <input id="verifyCode" type="text" inputmode="numeric" placeholder="6-digit code" />
+                </div>
+                <small class="error-msg" id="errVerifyCode"></small>
+              </div>
+
+              <div class="login-row">
+                <button class="btn secondary" id="btnBackToStep1" type="button">Back</button>
+                <button class="btn primary" id="btnVerifyCode" type="button">Verify</button>
+              </div>
+
+              <div class="text-muted mt-2 hint">
+                Didn’t receive it? <a href="#" id="resendLink">Resend</a>
+              </div>
+            </div>
+
+            <!-- Step 3: set new password -->
+            <div id="fgStep3" class="hidden">
+              <p class="text-muted mb-2">Set a new password.</p>
+
+              <div class="field">
+                <label for="newPassword">New password</label>
+                <div class="field-icon-wrapper">
+                  <span class="left-icon">🔒</span>
+                  <input id="newPassword" type="password" placeholder="New password" />
+                  <button class="right-btn" id="toggleNewPass" type="button" aria-label="Show/Hide new password">👁</button>
+                </div>
+                <small class="error-msg" id="errNewPassword"></small>
+              </div>
+
+              <div class="field">
+                <label for="confirmPassword">Confirm password</label>
+                <div class="field-icon-wrapper">
+                  <span class="left-icon">✅</span>
+                  <input id="confirmPassword" type="password" placeholder="Confirm password" />
+                </div>
+                <small class="error-msg" id="errConfirmPassword"></small>
+              </div>
+
+              <div class="login-row">
+                <button class="btn secondary" id="btnBackToStep2" type="button">Back</button>
+                <button class="btn primary" id="btnResetPassword" type="button">Reset password</button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- IMPORTANT: no websocket logic here; only page logic -->
+  <script src="js/loginServer.js"></script>
+</body>
+</html>
