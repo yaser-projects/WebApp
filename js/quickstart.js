@@ -434,46 +434,76 @@ async function loadStationSettings() {
 // -------------------------
 // ✅ Step 5 Load (Device Config) - per spec
 // -------------------------
+// -------------------------
+// ✅ Step 5 Load (Device Config) - FIX: collect AP + STA responses
+// -------------------------
 async function loadSummary() {
   try {
     showSpinner();
 
-    // send exact spec read
-    const response = await sendWSMessage(
-      {
-        setting: "device",
-        action: "read",
-        fields: ["AP SSID", "AP Pre-Shared Key", "Modem SSID", "Modem Pre-Shared Key"]
-      },
-      6000,
-      (data) =>
-        data &&
-        (data["AP SSID"] !== undefined ||
-          data["AP Pre-Shared Key"] !== undefined ||
-          data["Modem SSID"] !== undefined ||
-          data["Modem Pre-Shared Key"] !== undefined)
-    );
+    // 1) درخواست خواندن همه مقادیر
+    ws.sendJSON({
+      setting: "device",
+      action: "read",
+      fields: ["AP SSID", "AP Pre-Shared Key", "Modem SSID", "Modem Pre-Shared Key"]
+    });
 
-    // Read-only display
-    summaryAPSSID.textContent = response["AP SSID"] ?? '-';
-    summaryAPPsk.textContent = response["AP Pre-Shared Key"] ?? '-';
-    summaryModemSSID.textContent = response["Modem SSID"] ?? '-';
-    summaryModemPsk.textContent = response["Modem Pre-Shared Key"] ?? '-';
+    // 2) چون ws.js ممکنه جواب AP و STA رو جدا جدا بفرسته،
+    // باید هرچی میاد رو جمع کنیم تا همه فیلدها پر بشن.
+    const collected = {
+      "AP SSID": undefined,
+      "AP Pre-Shared Key": undefined,
+      "Modem SSID": undefined,
+      "Modem Pre-Shared Key": undefined,
+    };
 
-    // Mode based on Step 4 selection (stored in deviceState)
+    const deadline = Date.now() + 6000;
+
+    while (Date.now() < deadline) {
+      const data = await waitForWS(
+        (d) =>
+          d &&
+          (d["AP SSID"] !== undefined ||
+           d["AP Pre-Shared Key"] !== undefined ||
+           d["Modem SSID"] !== undefined ||
+           d["Modem Pre-Shared Key"] !== undefined),
+        Math.max(250, deadline - Date.now())
+      );
+
+      // Merge
+      ["AP SSID", "AP Pre-Shared Key", "Modem SSID", "Modem Pre-Shared Key"].forEach((k) => {
+        if (data[k] !== undefined) collected[k] = data[k];
+      });
+
+      const gotAP  = (collected["AP SSID"] !== undefined) || (collected["AP Pre-Shared Key"] !== undefined);
+      const gotSTA = (collected["Modem SSID"] !== undefined) || (collected["Modem Pre-Shared Key"] !== undefined);
+
+      // وقتی هر دو گروه رسیدن، تموم
+      if (gotAP && gotSTA) break;
+    }
+
+    // 3) نمایش (با fallback روی deviceState)
+    summaryAPSSID.textContent     = collected["AP SSID"] ?? deviceState["AP SSID"] ?? "-";
+    summaryAPPsk.textContent      = collected["AP Pre-Shared Key"] ?? deviceState["AP Pre-Shared Key"] ?? "-";
+    summaryModemSSID.textContent  = collected["Modem SSID"] ?? deviceState["Modem SSID"] ?? "-";
+    summaryModemPsk.textContent   = collected["Modem Pre-Shared Key"] ?? deviceState["Modem Pre-Shared Key"] ?? "-";
+
+    // Mode from Step 4 selection
     summaryMode.textContent = buildModeText();
   } catch (e) {
     console.error('[QuickStart] Failed to load summary:', e);
-    // keep UI safe
-    summaryAPSSID.textContent = '-';
-    summaryAPPsk.textContent = '-';
-    summaryModemSSID.textContent = '-';
-    summaryModemPsk.textContent = '-';
-    summaryMode.textContent = buildModeText();
+
+    // fallback safe
+    summaryAPSSID.textContent     = deviceState["AP SSID"] || "-";
+    summaryAPPsk.textContent      = deviceState["AP Pre-Shared Key"] || "-";
+    summaryModemSSID.textContent  = deviceState["Modem SSID"] || "-";
+    summaryModemPsk.textContent   = deviceState["Modem Pre-Shared Key"] || "-";
+    summaryMode.textContent       = buildModeText();
   } finally {
     hideSpinner();
   }
 }
+
 
 // -------------------------
 // Step 4 Mode rules
