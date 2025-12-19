@@ -253,9 +253,6 @@
    ================================================== */
 
 /* صفحه باید از بالا شروع شود ولی افقی دقیقاً وسط باشد */
-.page-network-settings body{
-  overflow-y: auto;
-}
 
 /* اگر common-style کلاس‌ها را ندارد، اینجا تعریف می‌کنیم (سفت و قطعی) */
 .page-network-settings .page-shell{
@@ -270,6 +267,13 @@
   align-items: flex-start;
 
   padding: 26px 16px 44px;
+
+  background-color: var(--bg-primary);
+  background-image: var(--page-bg, none), url('../image/background.png');
+  background-size: cover, cover;
+  background-position: center, center;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
 }
 
 /* پنل دقیقا هم‌عرض Status/About (همان حس کارت) */

@@ -11,15 +11,8 @@ body::before{
   position:fixed;
   inset:0;
   pointer-events:none;
-  opacity:.20; /* قبلاً .55 بود و بک‌گراند را می‌کشت */
-  background-image:
-    radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,.55), transparent 2px),
-    radial-gradient(1px 1px at 35% 30%, rgba(255,255,255,.45), transparent 2px),
-    radial-gradient(1px 1px at 70% 20%, rgba(255,255,255,.55), transparent 2px),
-    radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,.45), transparent 2px),
-    radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,.55), transparent 2px),
-    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,.45), transparent 2px),
-    radial-gradient(1px 1px at 92% 88%, rgba(255,255,255,.55), transparent 2px);
+  opacity:.10; /* Reduced opacity to ensure background image is visible */
+  background-image: none; /* Removed background-image to avoid conflict */
 }
 
 /* عنوان و جدول */
