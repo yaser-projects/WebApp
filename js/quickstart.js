@@ -760,7 +760,7 @@ btnFinish.addEventListener('click', async () => {
 
   // 4) hide progress and redirect/reload login
   hideSpinner();
-  window.location.href = 'index.html';
+  window.location.href = "loginDevice.html";
 });
 
 // Initialize
